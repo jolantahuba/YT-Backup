@@ -3,7 +3,7 @@
 const createBtn = document.querySelector('.menu__create-btn');
 const findBtn = document.querySelector('.menu__find-btn');
 const menuToggler = document.querySelector('.menu__toggler');
-const inputFile = document.getElementById('find__input-file');
+const inputFile = document.querySelector('.find__input-file');
 const exportBtn = document.getElementById('export-btn');
 
 createBtn.addEventListener('click', () => {
