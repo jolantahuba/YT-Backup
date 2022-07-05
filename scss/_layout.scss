@@ -191,3 +191,41 @@
     margin-top: 2rem;
   }
 }
+
+.export {
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__info {
+    font-size: .9rem;
+    color: $cl-text;
+    margin: 2em 1.2em;
+
+    &-wrapper {
+      display: flex;
+      margin-bottom: .5em;
+    }
+
+    &-text {
+      margin-right: .4em;
+    }
+
+    &-bold {
+      font-weight: 500;
+    }
+  }
+  
+  &__download-btn {
+    display: flex;
+    align-items: center;
+    align-self: center;
+
+    & img {
+      width: 1.8em;
+      margin-right: .7em;
+    }
+  }
+}

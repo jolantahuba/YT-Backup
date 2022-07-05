@@ -57,3 +57,16 @@
   cursor: pointer;
   padding: .8em 3em;
 }
+
+.success {
+  font-size: .9em;
+  background-color: $cl-success;
+  border: 1px solid $cl-success-outline;
+  border-radius: 15px;
+  padding: .9em 1.2em;
+
+  &-text {
+    font-weight: 500;
+    color: $cl-success-text;
+  }
+}
