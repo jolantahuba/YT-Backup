@@ -21,13 +21,14 @@
     </header>
 
     <nav class="menu">
-      <button class="menu__create-btn menu__btn">Create backup</button>
+      <span class="menu__toggler"></span>
+      <button class="menu__create-btn menu__btn active">Create backup</button>
       <button class="menu__find-btn menu__btn">Find missing</button>
     </nav>
 
     <div class="section-wrapper">
 
-      <section class="create section" id="create-initial-view">
+      <section class="create section active" id="create">
         <header class="section__header">
           <h2 class="section__heading">Create playlist backup</h2>
           <p class="section__desc">Export your YouTube playlist data to file.</p>
@@ -51,7 +52,7 @@
       </section>
   
   
-      <section class="find section">
+      <section class="find section"  id="find">
         <header class="section__header">
           <h2 class="section__heading">Find missing videos</h2>
           <p class="section__desc">Check what has been removed or added to the playlist since your backup.</p>
@@ -69,7 +70,7 @@
         </form>
       </section>
 
-      
+
     </div>
   </div>
 </body>

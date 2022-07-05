@@ -5,6 +5,11 @@
   border-radius: 25px;
   padding: 1.6em;
   font-family: $ff;
+  display: none;
+
+  &.active {
+    display: block;
+  }
 
   &-wrapper {
     width: 90%;

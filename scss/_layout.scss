@@ -50,8 +50,7 @@
   border-radius: 25px;
   margin-bottom: 1.5rem;
 
-  &::before {
-    content: '';
+  &__toggler {
     position: absolute;
     top: 0;
     left: 0;
@@ -63,7 +62,7 @@
     border-radius: 25px;
     transition: transform .3s;
 
-    .find-view & {
+    &.switched {
       transform: translateX(100%);
     }
   }
@@ -74,33 +73,21 @@
     font-family: $ff;
     font-size: .9em;
     font-weight: 500;
+    color: $cl-text;
     background-color: transparent;
     border: none;
     border-radius: 25px;
     padding: .4em;
     transition: color .2s;
-  }
-  
-  &__create-btn {
-    color: #fff;
 
-    .find-view & {
-      color: $cl-text;
-    }
-  }
-  
-  &__find-btn {
-    color: $cl-text;
-
-    .find-view & {
+    &.active {
       color: #fff;
     }
   }
 }
 
 .create {
-  display: block;
-  
+
   &__form {
     display: flex;
     flex-direction: column;
@@ -162,15 +149,10 @@
     align-self: center;
     margin-top: 2.4rem;
   }
-
-  .find-view & {
-    display: none;
-  }
 }
 
 
 .find {
-  display: none;
 
   &__form {
     display: flex;
@@ -207,9 +189,5 @@
   &__btn {
     align-self: center;
     margin-top: 2rem;
-  }
-
-  .find-view & {
-    display: block;
   }
 }
