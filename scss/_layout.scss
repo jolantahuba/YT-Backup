@@ -1,0 +1,215 @@
+.container {
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: auto auto 1fr;
+  justify-items: center;
+  min-height: 100vh;
+  background-color: $cl-bg-body;
+  padding: 2rem 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(2.7rem, calc(4vw + 1.2rem), 3.6rem);
+  font-family: $ff;
+  margin-top: 9vh;
+  margin-bottom: 2rem;
+
+  &__icon {
+    width: 2em;
+    margin-right: .15em;
+    margin-top: .1em;
+  }
+
+  &__title {
+    font-size: 1em;
+    font-weight: 700;
+    color: $cl-text;
+  }
+  
+  &__subtitle {
+    display: block;
+    font-size: .44em;
+    font-weight: 400;
+    text-indent: .3em;
+    text-transform: uppercase;
+    margin-top: -.3em;
+  }
+}
+
+.menu {
+  position: relative;
+  display: flex;
+  font-size: 1rem;
+  width: 90%;
+  max-width: 40rem;
+  background-color: $cl-bg;
+  box-shadow: 0 0 0 1px $cl-outline;
+  border-radius: 25px;
+  margin-bottom: 1.5rem;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    transform: translateX(0);
+    background-color: $cl-secondary;
+    box-shadow: 0 0 0 1px $cl-secondary;
+    border-radius: 25px;
+    transition: transform .3s;
+
+    .find-view & {
+      transform: translateX(100%);
+    }
+  }
+  
+  &__btn {
+    position: relative;
+    width: 50%;
+    font-family: $ff;
+    font-size: .9em;
+    font-weight: 500;
+    background-color: transparent;
+    border: none;
+    border-radius: 25px;
+    padding: .4em;
+    transition: color .2s;
+  }
+  
+  &__create-btn {
+    color: #fff;
+
+    .find-view & {
+      color: $cl-text;
+    }
+  }
+  
+  &__find-btn {
+    color: $cl-text;
+
+    .find-view & {
+      color: #fff;
+    }
+  }
+}
+
+.create {
+  display: block;
+  
+  &__form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__input-url {
+    display: block;
+    width: 100%;
+    font-size: .9em;
+    color: $cl-text;
+    box-shadow: 0 0 0 1px $cl-outline;
+    border: none;
+    border-radius: 10px;
+    padding: .8em;
+    margin-bottom: .9em;
+
+    &::placeholder {
+      color: $cl-outline;
+    }
+    
+    &:focus {
+      outline: 3px solid $cl-secondary;
+    }
+  }
+
+  &__label-url {
+    display: flex;
+    align-items: flex-start;
+
+    & img {
+      width: 1.3em;
+      margin-right: .3em;
+      margin-top: -0.1em;
+    }
+    
+    & a {
+      position: relative;
+      color: $cl-secondary;
+      text-decoration: none;
+    }
+    
+    & a::after {
+      content: '';
+      position: absolute;
+      bottom: 0px;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      border-bottom: 1px dashed $cl-secondary;
+    }
+  }
+
+  &__checkbox-wrapper {
+    display: flex;
+    margin: 1.4rem 0 0.1rem;
+  }
+
+  &__btn {
+    align-self: center;
+    margin-top: 2.4rem;
+  }
+
+  .find-view & {
+    display: none;
+  }
+}
+
+
+.find {
+  display: none;
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__input-file {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+
+    &:focus + .find__label-file {
+      outline: 2px solid #000;
+    }
+  }
+
+  &__label-file {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #9d9d9d;
+    padding: .8em;
+    cursor: pointer;
+    & img {
+      width: 1.7em;
+      margin-right: 0.3em;
+    }
+  }
+
+  &__btn {
+    align-self: center;
+    margin-top: 2rem;
+  }
+
+  .find-view & {
+    display: block;
+  }
+}

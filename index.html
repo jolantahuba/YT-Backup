@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Playlist Backup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <script src="js/main.js" defer></script>
+</head>
+<body>
+  <div class="container">
+
+    <header class="logo">
+      <img class="logo__icon" src="icons/yt-logo.png" alt="YouTube logo">
+      <h1 class="logo__title">
+        YouTube
+        <span class="logo__subtitle">Playlist Backup</span>
+      </h1>
+    </header>
+
+    <nav class="menu">
+      <button class="menu__create-btn menu__btn">Create backup</button>
+      <button class="menu__find-btn menu__btn">Find missing</button>
+    </nav>
+
+    <div class="section-wrapper">
+
+      <section class="create section" id="create-initial-view">
+        <header class="section__header">
+          <h2 class="section__heading">Create playlist backup</h2>
+          <p class="section__desc">Export your YouTube playlist data to file.</p>
+        </header>
+  
+        <form class="create__form">
+          <input type="text" class="create__input-url" id="url" name="url" placeholder="https://www.youtube.com/playlist?list=PLabhy3yqJE_ZIP2uSYdal9a9ORZ6ZzW">
+  
+          <label for="url" class="create__label-url label">
+            <img src="icons/info.svg" alt="">
+            <span>Enter the playlist URL copied from <a href="https://www.youtube.com/">YouTube</a></span>
+          </label>
+
+          <div class="create__checkbox-wrapper">
+            <input type="checkbox" class="checkbox" name="description" id="add-description">
+            <label for="add-description" class="label">Include viedo description</label>
+          </div>
+  
+          <button class="create__btn btn">Export</button>
+        </form>
+      </section>
+  
+  
+      <section class="find section">
+        <header class="section__header">
+          <h2 class="section__heading">Find missing videos</h2>
+          <p class="section__desc">Check what has been removed or added to the playlist since your backup.</p>
+        </header>
+  
+        <form class="find__form">
+  
+          <input type="file" class="find__input-file" id="input-file" name="input-file">
+          <label for="input-file" class="find__label-file label">
+            <img src="icons/file.svg" alt="">
+            Choose your backup file
+          </label>
+  
+          <button class="find__btn btn">Check</button>
+        </form>
+      </section>
+
+      
+    </div>
+  </div>
+</body>
+</html>
