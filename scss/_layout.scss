@@ -202,7 +202,7 @@
   &__info {
     font-size: .9rem;
     color: $cl-text;
-    margin: 2em 1.2em;
+    margin: 2rem 1.2rem;
 
     &-wrapper {
       display: flex;
@@ -228,4 +228,78 @@
       margin-right: .7em;
     }
   }
+}
+
+.compare {
+  font-size: 1rem;
+
+  &__content {
+    display: grid;
+
+    @media (min-width: 40em) {
+      grid-template-columns: 1fr auto;
+      column-gap: 2.5rem;
+    }
+  }
+
+  &__success {
+    @media (min-width: 40em) {
+      grid-column: 1/3;
+    }
+  }
+
+  &__info {
+    font-size: .9em;
+    margin-top: 1.5rem;
+    margin-left: .7rem;
+
+    @media (min-width: 40em) {
+      margin: 2.3rem .7rem;
+    }
+  }
+
+  &__added {
+    margin-bottom: 1.3rem;
+  }
+
+  &__label {
+    margin-bottom: .5em;
+  }
+
+  &__list {
+    list-style: none;
+
+    & li {
+      margin-bottom: .2em;
+    }
+  }
+  
+  &__buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1.5rem;
+
+    @media (min-width: 40em) {
+      margin-top: 2.3rem;
+    }
+  }
+
+  &__btn-update {
+    font-size: .95em;
+    padding: .8em 2em;
+  }
+
+  &__btn-download {
+    display: block;
+    font-size: 1em;
+    font-family: $ff;
+    color: #454545;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px dashed #454545;
+    margin-top: 1.3em;
+    cursor: pointer;
+  }
+
 }

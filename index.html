@@ -51,7 +51,7 @@
         </form>
       </section>
   
-      <section class="export section active" id="export">
+      <section class="export section" id="export">
         <header class="section__header">
           <h2 class="section__heading">Create playlist backup</h2>
           <p class="section__desc">Export your YouTube playlist data to file.</p>
@@ -107,6 +107,42 @@
         </form>
       </section>
 
+      <section class="compare section active" id="compare">
+        <header class="section__header">
+          <h2 class="section__heading">Find missing videos</h2>
+          <p class="section__desc">Check what has been removed or added to the playlist since your backup.</p>
+        </header>
+  
+        <div class="compare__content">
+          <div class="success compare__success">
+            <p class="success-text">Comparing complete!</p>
+          </div>
+
+          <div class="compare__info">
+            <div class="compare__added">
+              <p class="compare__label">Added videos: <span class="success-text">1</span></p>
+              <ul class="compare__list success-text">
+                <li>+ The Score - Only one</li>
+                <li>+ The Isdore - dsdsaOnly one</li>
+              </ul>
+            </div>
+
+            <div class="compare__removed">
+              <p class="compare__label">Removed videos: <span class="failure-text">2</span></p>
+              <ul class="compare__list failure-text">
+                <li>- Indila - Derniere Dance und naturlisch zium ram</li>
+                <li>- Imagine Dragons - Natural</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="compare__buttons">
+            <button class="compare__btn-update btn">Update your backup</button>
+            <button class="compare__btn-download">Download changes</button>
+          </div>
+
+        </div>
+      </section>
 
     </div>
   </div>
