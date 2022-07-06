@@ -24,6 +24,39 @@ findBtn.addEventListener('click', () => {
 
 });
 
+exportBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+
+  const urlInput = document.getElementById('input-url');
+
+  if(checkUrl(urlInput.value) === false) {
+    urlInput.insertAdjacentHTML('afterend', createErrorElement('Invalid URL'));
+    return;
+  }
+
+  // prevent adding infinite errors !!
+
+});
+
+function checkUrl(url) {
+  const regex = /(https:\/\/)?(www\.)?(m.)?youtube\.com.*[?&]list=.*/;
+  return regex.test(url);
+}
+
+function createErrorElement(title, desc) {
+
+  let errorElement = `
+  <div class="error">
+    <div class="error__title">
+      <img src="icons/error.svg" alt="">
+      <p>${title}</p>
+    </div>
+    ${desc ? `<p class="error__desc">${desc}</p>` : ``}
+  </div>`;
+
+  return errorElement;
+}
+
 inputFile.addEventListener('change', (e) => {
   const fileLabel = document.querySelector('label[for=input-file]');
 

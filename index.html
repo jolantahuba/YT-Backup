@@ -28,7 +28,7 @@
 
     <div class="section-wrapper">
 
-      <section class="create section " id="create">
+      <section class="create section active" id="create">
         <header class="section__header">
           <h2 class="section__heading">Create playlist backup</h2>
           <p class="section__desc">Export your YouTube playlist data to file.</p>
@@ -36,7 +36,7 @@
   
         <form class="create__form">
           <input type="text" class="create__input-url" id="input-url" name="input-url" placeholder="https://www.youtube.com/playlist?list=PLabhy3yqJE_ZIP2uSYdal9a9ORZ6ZzW">
-  
+
           <label for="input-url" class="create__label-url label">
             <img src="icons/info.svg" alt="">
             <span>Enter the playlist URL copied from <a href="https://www.youtube.com/">YouTube</a></span>
@@ -47,7 +47,7 @@
             <label for="add-description" class="label">Include viedo description</label>
           </div>
   
-          <button class="create__btn btn">Export</button>
+          <button class="create__btn btn" id="export-btn">Export</button>
         </form>
       </section>
   
@@ -107,7 +107,7 @@
         </form>
       </section>
 
-      <section class="compare section active" id="compare">
+      <section class="compare section" id="compare">
         <header class="section__header">
           <h2 class="section__heading">Find missing videos</h2>
           <p class="section__desc">Check what has been removed or added to the playlist since your backup.</p>

@@ -72,15 +72,31 @@
   }
 }
 
-.failure {
+.error {
   font-size: .9em;
-  background-color: $cl-failure;
-  border: 1px solid $cl-failure-outline;
+  color: $cl-error-text;
+  background-color: $cl-error;
+  border: 1px solid $cl-error-outline;
   border-radius: 15px;
   padding: .9em 1.2em;
+  margin-bottom: .8em;
 
-  &-text {
-    font-weight: 500;
-    color: $cl-failure-text;
+  &__title {
+    display: flex;
+    align-items: center;
+    font-weight: 700;
+  }
+
+  & img {
+    width: 1.5em;
+    margin-top: -.2em;
+    margin-right: .4rem;
+  }
+
+  &__desc {
+    margin-top: .3em;
+    font-weight: 400;
+    margin-left: .2em;
   }
 }
+
