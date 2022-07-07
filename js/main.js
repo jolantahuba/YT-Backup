@@ -26,15 +26,16 @@ findBtn.addEventListener('click', () => {
 
 exportBtn.addEventListener('click', (e) => {
   e.preventDefault();
+  clearError();
 
   const urlInput = document.getElementById('input-url');
-
-  if(checkUrl(urlInput.value) === false) {
-    urlInput.insertAdjacentHTML('afterend', createErrorElement('Invalid URL'));
+  const isValid = checkUrl(urlInput.value);
+  if(!isValid) {
+    urlInput.insertAdjacentHTML('afterend', createError('Invalid URL'));
     return;
   }
-
-  // prevent adding infinite errors !!
+  
+  console.log('continue..');
 
 });
 
@@ -43,7 +44,7 @@ function checkUrl(url) {
   return regex.test(url);
 }
 
-function createErrorElement(title, desc) {
+function createError(title, desc) {
 
   let errorElement = `
   <div class="error">
@@ -57,13 +58,10 @@ function createErrorElement(title, desc) {
   return errorElement;
 }
 
-inputFile.addEventListener('change', (e) => {
-  const fileLabel = document.querySelector('label[for=input-file]');
-
-  const path = e.target.value.split('\\');
-  const fileName = path[path.length-1];
-  fileLabel.textContent = fileName;
-});
+function clearError() {
+  const error = document.querySelector('.error');
+  if(error) error.remove();
+}
 
 function showSection(sectionId) {
   const sections = [...document.querySelectorAll('.section')];
@@ -76,3 +74,11 @@ function showSection(sectionId) {
     .find(section => section.id == sectionId)
     .classList.add('active');
 }
+
+inputFile.addEventListener('change', (e) => {
+  const fileLabel = document.querySelector('label[for=input-file]');
+
+  const path = e.target.value.split('\\');
+  const fileName = path[path.length-1];
+  fileLabel.textContent = fileName;
+});
