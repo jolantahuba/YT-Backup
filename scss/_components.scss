@@ -98,5 +98,10 @@
     font-weight: 400;
     margin-left: .2em;
   }
+
+  &-text {
+    color: $cl-error-text;
+    font-weight: 500;
+  }
 }
 
