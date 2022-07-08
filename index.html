@@ -22,8 +22,8 @@
 
     <nav class="menu">
       <span class="menu__toggler"></span>
-      <button class="menu__create-btn menu__btn active">Create backup</button>
-      <button class="menu__find-btn menu__btn">Find missing</button>
+      <button class="menu__btn active" id="create-btn">Create backup</button>
+      <button class="menu__btn" id="find-btn">Find missing</button>
     </nav>
 
     <div class="section-wrapper">
@@ -81,7 +81,7 @@
             </div>
           </div>
 
-          <button class="export__download-btn btn">
+          <button class="export__download-btn btn" id="download-btn">
             <img src="icons/download.svg" alt="">
             <p>Download</p>
           </button>
@@ -137,8 +137,8 @@
           </div>
 
           <div class="compare__buttons">
-            <button class="compare__btn-update btn">Update your backup</button>
-            <button class="compare__btn-download">Download changes</button>
+            <button class="compare__btn-update btn" id="update-btn">Update your backup</button>
+            <button class="compare__btn-download" id="download-changes-btn">Download changes</button>
           </div>
 
         </div>
