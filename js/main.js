@@ -11,10 +11,6 @@ const urlInput = document.getElementById('input-url');
 const apiKey = 'AIzaSyDlaaI4Y7-fklD-lscHes8jiC8tc7YnGOU';
 
 async function getPlaylistItems(id) {
-
-  // get first response, check data, if nextPage -> continue fetching
-  // and pushing data to array
-  // u can put parts of request in object and join them in place (?)
   
   const addDesc = document.getElementById('add-description').checked;
   const playlistItems = [];
@@ -22,48 +18,45 @@ async function getPlaylistItems(id) {
   let response = await fetch(`https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=5&playlistId=${id}&key=${apiKey}`);
 
   if(!response.ok) {
-    urlInput.insertAdjacentHTML('afterend', createError('Playlist not found', 'You may check playlist privacy settings - it needs to be public or non-public playlist.'));
+    urlInput.insertAdjacentHTML('afterend', createError('Playlist not found', 'Check playlist privacy settings - should be set to public or non-public'));
     return;
   }
 
   let result = await response.json();
-  // console.log(result);
 
-    const headers = ['ID', 'Title', 'Channel']
-    playlistItems.push(headers);
-    if(addDesc) headers.push('Description');
-  
-    for(let item of result.items){
+  console.log(result);
 
-      const data = [
-        item.snippet.resourceId.videoId,
-        item.snippet.title,
-        item.snippet.videoOwnerChannelTitle,
-    ];
-      if(addDesc) data.push(item.snippet.description);
-      playlistItems.push(data);
-  }
+  const headers = ['ID', 'Title', 'Channel', 'PublishedAt']
+  if(addDesc) headers.push('Description');
+  playlistItems.push(headers);
+
+  pushItems();
 
   while(result.nextPageToken) {
-    console.log('continue fetching...');
+    // console.log('continue fetching...');
 
     response = await fetch(`https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=5&playlistId=${id}&key=${apiKey}&pageToken=${result.nextPageToken}`);
 
     result = await response.json();
-    // console.log(result);
+    pushItems();  
+  }
 
+  console.log(playlistItems);
+
+
+  function pushItems() {
     for(let item of result.items){
 
       const data = [
         item.snippet.resourceId.videoId,
         item.snippet.title,
         item.snippet.videoOwnerChannelTitle,
-    ];
+        item.contentDetails.videoPublishedAt,
+      ];
       if(addDesc) data.push(item.snippet.description);
+  
       playlistItems.push(data);
     }
-  
-  console.log(playlistItems);
   }
 
 }
@@ -90,16 +83,14 @@ exportBtn.addEventListener('click', (e) => {
   e.preventDefault();
   clearError();
 
-  const isValid = checkUrl(urlInput.value);
-  if(!isValid) {
+  if(!checkUrl(urlInput.value)) {
     urlInput.insertAdjacentHTML('afterend', createError('Invalid URL'));
-    // return;
-    throw new Error('Invalid URL');
+    return;
   }
-  
-  const playlistId = urlInput.value.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
 
+  const playlistId = urlInput.value.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
   // console.log(playlistId);
+
   getPlaylistItems(playlistId);
 
 });
@@ -107,7 +98,6 @@ exportBtn.addEventListener('click', (e) => {
 function checkUrl(url) {
   const regex = /(https:\/\/)?(www\.)?(m.)?youtube\.com.*[?&]list=.*/;
   return regex.test(url);
-  // add error handlings maybe
 }
 
 function createError(title, desc) {
