@@ -14,17 +14,24 @@ async function getPlaylistItems(id) {
   
   const addDesc = document.getElementById('add-description').checked;
   const playlistItems = [];
+  const api = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=5&playlistId=${id}&key=${apiKey}`;
+  let response, result = null;
+  // let result = null;
 
-  let response = await fetch(`https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=5&playlistId=${id}&key=${apiKey}`);
-
-  if(!response.ok) {
-    urlInput.insertAdjacentHTML('afterend', createError('Playlist not found', 'Check playlist privacy settings - should be set to public or non-public'));
+  try {
+    response = await fetch(api);
+    if(!response.ok) {
+      throw new Error('API error');
+    }
+    result = await response.json();
+  } catch(err) {
+    if(response.status === 404) {
+      urlInput.insertAdjacentHTML('afterend', createError('Playlist not found', 'Check the URL or playlist privacy settings - should be set to public or non-public'));
+    } else {
+      urlInput.insertAdjacentHTML('afterend', createError('Some unknown error has occured.', 'Please try again later.'));
+    }
     return;
   }
-
-  let result = await response.json();
-
-  console.log(result);
 
   const headers = ['ID', 'Title', 'Channel', 'PublishedAt']
   if(addDesc) headers.push('Description');
@@ -34,9 +41,7 @@ async function getPlaylistItems(id) {
 
   while(result.nextPageToken) {
     // console.log('continue fetching...');
-
-    response = await fetch(`https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=5&playlistId=${id}&key=${apiKey}&pageToken=${result.nextPageToken}`);
-
+    response = await fetch(api + `&pageToken=${result.nextPageToken}`);
     result = await response.json();
     pushItems();  
   }
