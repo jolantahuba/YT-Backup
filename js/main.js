@@ -15,6 +15,7 @@ async function getPlaylistItems(id) {
   const addDesc = document.getElementById('add-description').checked;
   const playlistItems = [];
   const api = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=5&playlistId=${id}&key=${apiKey}`;
+  
   let response, result = null;
   // let result = null;
 
@@ -36,8 +37,8 @@ async function getPlaylistItems(id) {
   const headers = ['ID', 'Title', 'Channel', 'PublishedAt']
   if(addDesc) headers.push('Description');
   playlistItems.push(headers);
-
   pushItems();
+
 
   while(result.nextPageToken) {
     // console.log('continue fetching...');
@@ -45,9 +46,6 @@ async function getPlaylistItems(id) {
     result = await response.json();
     pushItems();  
   }
-
-  console.log(playlistItems);
-
 
   function pushItems() {
     for(let item of result.items){
@@ -64,6 +62,24 @@ async function getPlaylistItems(id) {
     }
   }
 
+  // console.log(playlistItems);
+  return playlistItems;
+}
+
+async function getPlaylistInfo(id) {
+  const playlistApi = `https://youtube.googleapis.com/youtube/v3/playlists?part=snippet%2CcontentDetails&id=${id}&key=${apiKey}`;
+  const response = await fetch(playlistApi);
+  const result = await response.json();
+  // console.log(result);
+  
+  const playlistInfo = {
+    id: result.items[0].id,
+    title: result.items[0].snippet.title,
+    author: result.items[0].snippet.channelTitle,
+    videos: result.items[0].contentDetails.itemCount,
+  }
+  // console.log(playlistInfo)
+  return playlistInfo;
 }
 
 createBtn.addEventListener('click', () => {
@@ -96,7 +112,10 @@ exportBtn.addEventListener('click', (e) => {
   const playlistId = urlInput.value.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
   // console.log(playlistId);
 
-  getPlaylistItems(playlistId);
+  // Promise.all([
+  //     getPlaylistItems(playlistId),
+  //     getPlaylistInfo(playlistId)
+  // ]).then(result => {});
 
 });
 
