@@ -127,13 +127,45 @@ exportBtn.addEventListener('click', (e) => {
     const playlist = await getPlaylist();
     if(!playlist) return;
     // console.log(playlist);
-    
-    showPlaylistInfo(playlist.info);
-    showSection('export');
+
+    makeCSV(playlist);
+    // const fileCSV = makeCSV(playlist);
+    // console.log(fileCSV);
+
+    // showPlaylistInfo(playlist.info);
+    // showSection('export');
   })();
-
-
 });
+
+
+function makeCSV(playlist) {
+  let csvFile = '';
+
+  csvFile = playlist.items.map(row =>
+    row
+    .map(String)  // convert every value to String
+    .map(v => v.replaceAll('"', '""'))  // escape double colons
+    .map(v => `"${v}"`)  // quote it
+    .join(',')  // comma-separated
+  ).join('\r\n');  // rows starting on new lines
+
+  csvFile += 'Playlist ID\n' + playlist.info.id;
+  console.log(csvFile);
+
+  const blob = new Blob([csvFile], {type: 'text/csv;charset=utf-8;'});
+  // return blob;
+
+  // FILE DOWNLOADING FOR TESTING 
+  var url = URL.createObjectURL(blob);
+
+  var link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", 'backup');
+  // link.style.visibility = 'hidden';
+  // document.body.appendChild(link);
+  link.click();
+  // document.body.removeChild(link);
+}
 
 function checkUrl(url) {
   const regex = /(https:\/\/)?(www\.)?(m.)?youtube\.com.*[?&]list=.*/;
