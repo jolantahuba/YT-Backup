@@ -14,72 +14,86 @@ async function getPlaylistItems(id) {
   
   const addDesc = document.getElementById('add-description').checked;
   const playlistItems = [];
-  const api = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=5&playlistId=${id}&key=${apiKey}`;
-  
-  let response, result = null;
-  // let result = null;
-
-  try {
-    response = await fetch(api);
-    if(!response.ok) {
-      throw new Error('API error');
-    }
-    result = await response.json();
-  } catch(err) {
-    if(response.status === 404) {
-      urlInput.insertAdjacentHTML('afterend', createError('Playlist not found', 'Check the URL or playlist privacy settings - should be set to public or non-public'));
-    } else {
-      urlInput.insertAdjacentHTML('afterend', createError('Some unknown error has occured.', 'Please try again later.'));
-    }
-    return;
-  }
+  const itemsApi = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=5&playlistId=${id}&key=${apiKey}`;
 
   const headers = ['ID', 'Title', 'Channel', 'PublishedAt']
   if(addDesc) headers.push('Description');
   playlistItems.push(headers);
-  pushItems();
 
+  try {
+    let response = await fetch(itemsApi);
+    if(!response.ok) {
+      throw response.status;
+    }
 
-  while(result.nextPageToken) {
-    // console.log('continue fetching...');
-    response = await fetch(api + `&pageToken=${result.nextPageToken}`);
-    result = await response.json();
-    pushItems();  
+    let result = await response.json();
+    pushItems(result.items);
+
+    while(result.nextPageToken) {
+      // console.log('continue fetching...');
+      response = await fetch(itemsApi + `&pageToken=${result.nextPageToken}`);
+      result = await response.json();
+      pushItems(result.items);
+    }
+
+    // console.log(playlistItems)
+    return playlistItems;
+
+  } catch(err) {
+    if(err === 404) {
+      urlInput.insertAdjacentHTML('afterend', createError('Playlist not found', 'Check the URL or playlist privacy settings - should be set to public or non-public'));
+    } else {
+      urlInput.insertAdjacentHTML('afterend', createError('Data retrieving problem.', 'Please try again later.'));
+    }
   }
 
-  function pushItems() {
-    for(let item of result.items){
+  function pushItems(items) {
+    for(let item of items){
 
-      const data = [
+      const line = [
         item.snippet.resourceId.videoId,
         item.snippet.title,
         item.snippet.videoOwnerChannelTitle,
         item.contentDetails.videoPublishedAt,
       ];
-      if(addDesc) data.push(item.snippet.description);
+      if(addDesc) line.push(item.snippet.description);
   
-      playlistItems.push(data);
+      playlistItems.push(line);
     }
   }
-
-  // console.log(playlistItems);
-  return playlistItems;
 }
 
 async function getPlaylistInfo(id) {
   const playlistApi = `https://youtube.googleapis.com/youtube/v3/playlists?part=snippet%2CcontentDetails&id=${id}&key=${apiKey}`;
+
   const response = await fetch(playlistApi);
-  const result = await response.json();
-  // console.log(result);
-  
+  let result = await response.json();
+  if(!result.items.length) return;
+
   const playlistInfo = {
     id: result.items[0].id,
     title: result.items[0].snippet.title,
     author: result.items[0].snippet.channelTitle,
     videos: result.items[0].contentDetails.itemCount,
   }
-  // console.log(playlistInfo)
+    // console.log(playlistInfo)
   return playlistInfo;
+}
+
+async function getPlaylist() {
+  const playlistId = urlInput.value.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
+
+  const info = await getPlaylistInfo(playlistId);
+  const items = await getPlaylistItems(playlistId);
+
+  if(info && items) {
+    const playlist = {
+      info: info,
+      items:items,
+    }
+    return playlist;
+  }
+  
 }
 
 createBtn.addEventListener('click', () => {
@@ -109,13 +123,15 @@ exportBtn.addEventListener('click', (e) => {
     return;
   }
 
-  const playlistId = urlInput.value.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
-  // console.log(playlistId);
+  (async () => {
+    const playlist = await getPlaylist();
+    // if(!playlist) return;
+    console.log(playlist);
+    
 
-  // Promise.all([
-  //     getPlaylistItems(playlistId),
-  //     getPlaylistInfo(playlistId)
-  // ]).then(result => {});
+    // showSection('export');
+  })();
+
 
 });
 
