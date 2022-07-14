@@ -93,7 +93,7 @@ async function getPlaylist() {
     }
     return playlist;
   }
-  
+
 }
 
 createBtn.addEventListener('click', () => {
@@ -125,11 +125,11 @@ exportBtn.addEventListener('click', (e) => {
 
   (async () => {
     const playlist = await getPlaylist();
-    // if(!playlist) return;
-    console.log(playlist);
+    if(!playlist) return;
+    // console.log(playlist);
     
-
-    // showSection('export');
+    showPlaylistInfo(playlist.info);
+    showSection('export');
   })();
 
 
@@ -169,6 +169,16 @@ function showSection(sectionId) {
   sections
     .find(section => section.id == sectionId)
     .classList.add('active');
+}
+
+function showPlaylistInfo(info) {
+  const title = document.querySelector('[data-label=title');
+  const author = document.querySelector('[data-label=author');
+  const videos = document.querySelector('[data-label=videos');
+  
+  title.textContent = info.title;
+  author.textContent = info.author;
+  videos.textContent = info.videos;
 }
 
 inputFile.addEventListener('change', (e) => {
