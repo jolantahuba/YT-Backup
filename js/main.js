@@ -128,12 +128,11 @@ exportBtn.addEventListener('click', (e) => {
     if(!playlist) return;
     // console.log(playlist);
 
-    makeCSV(playlist);
-    // const fileCSV = makeCSV(playlist);
-    // console.log(fileCSV);
+    const fileCSV = makeCSV(playlist);
+    console.log(fileCSV);
 
-    // showPlaylistInfo(playlist.info);
-    // showSection('export');
+    showPlaylistInfo(playlist.info, fileCSV.size);
+    showSection('export');
   })();
 });
 
@@ -153,7 +152,7 @@ function makeCSV(playlist) {
   console.log(csvFile);
 
   const blob = new Blob([csvFile], {type: 'text/csv;charset=utf-8;'});
-  // return blob;
+  return blob;
 
   // FILE DOWNLOADING FOR TESTING 
   var url = URL.createObjectURL(blob);
@@ -203,14 +202,16 @@ function showSection(sectionId) {
     .classList.add('active');
 }
 
-function showPlaylistInfo(info) {
+function showPlaylistInfo(info, fileSize) {
   const title = document.querySelector('[data-label=title');
   const author = document.querySelector('[data-label=author');
   const videos = document.querySelector('[data-label=videos');
+  const size = document.querySelector('[data-label=size');
   
   title.textContent = info.title;
   author.textContent = info.author;
   videos.textContent = info.videos;
+  size.textContent = (fileSize / 10**3).toFixed(1) + 'KB';
 }
 
 inputFile.addEventListener('change', (e) => {
