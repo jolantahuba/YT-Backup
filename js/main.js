@@ -3,6 +3,7 @@
 const createBtn = document.getElementById('create-btn');
 const findBtn = document.getElementById('find-btn');
 const exportBtn = document.getElementById('export-btn');
+const downloadBtn = document.getElementById('download-btn');
 
 const menuToggler = document.querySelector('.menu__toggler');
 const inputFile = document.getElementById('input-file');
@@ -118,10 +119,7 @@ exportBtn.addEventListener('click', (e) => {
   e.preventDefault();
   clearError();
 
-  if(!checkUrl(urlInput.value)) {
-    urlInput.insertAdjacentHTML('afterend', createError('Invalid URL'));
-    return;
-  }
+  if(!checkUrl(urlInput.value)) return;
 
   (async () => {
     const playlist = await getPlaylist();
@@ -129,13 +127,26 @@ exportBtn.addEventListener('click', (e) => {
     // console.log(playlist);
 
     const fileCSV = makeCSV(playlist);
-    console.log(fileCSV);
+    const fileUrl = URL.createObjectURL(fileCSV);
+    // console.log(fileCSV);
+
+    downloadBtn.addEventListener(
+      'click', 
+      downloadFile(downloadBtn, fileUrl, playlist.info.title)
+    );
 
     showPlaylistInfo(playlist.info, fileCSV.size);
     showSection('export');
   })();
 });
 
+
+function downloadFile(link, url, name) {
+  const date = new Date().toISOString().slice(0, 10);
+
+  link.setAttribute("href", url);
+  link.setAttribute('download', `${name}-${date}`);
+}
 
 function makeCSV(playlist) {
   let csvFile = '';
@@ -149,26 +160,18 @@ function makeCSV(playlist) {
   ).join('\r\n');  // rows starting on new lines
 
   csvFile += 'Playlist ID\n' + playlist.info.id;
-  console.log(csvFile);
 
   const blob = new Blob([csvFile], {type: 'text/csv;charset=utf-8;'});
   return blob;
-
-  // FILE DOWNLOADING FOR TESTING 
-  var url = URL.createObjectURL(blob);
-
-  var link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", 'backup');
-  // link.style.visibility = 'hidden';
-  // document.body.appendChild(link);
-  link.click();
-  // document.body.removeChild(link);
 }
 
 function checkUrl(url) {
   const regex = /(https:\/\/)?(www\.)?(m.)?youtube\.com.*[?&]list=.*/;
-  return regex.test(url);
+  const result = regex.test(url);
+  if(!result) {
+    urlInput.insertAdjacentHTML('afterend', createError('Invalid URL'));
+  }
+  return result;
 }
 
 function createError(title, desc) {
@@ -211,7 +214,7 @@ function showPlaylistInfo(info, fileSize) {
   title.textContent = info.title;
   author.textContent = info.author;
   videos.textContent = info.videos;
-  size.textContent = (fileSize / 10**3).toFixed(1) + 'KB';
+  size.textContent = (fileSize / 1024).toFixed(1) + 'KB';
 }
 
 inputFile.addEventListener('change', (e) => {
