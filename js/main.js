@@ -15,7 +15,7 @@ async function getPlaylistItems(id) {
   
   const addDesc = document.getElementById('add-description').checked;
   const playlistItems = [];
-  const itemsApi = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=5&playlistId=${id}&key=${apiKey}`;
+  const itemsApi = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=50&playlistId=${id}&key=${apiKey}`;
 
   const headers = ['ID', 'Title', 'Channel', 'PublishedAt']
   if(addDesc) headers.push('Description');
@@ -124,7 +124,7 @@ exportBtn.addEventListener('click', (e) => {
   (async () => {
     const playlist = await getPlaylist();
     if(!playlist) return;
-    // console.log(playlist);
+    console.log(playlist);
 
     const fileCSV = makeCSV(playlist);
     const fileUrl = URL.createObjectURL(fileCSV);
