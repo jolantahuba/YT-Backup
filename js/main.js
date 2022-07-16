@@ -4,6 +4,7 @@ const createBtn = document.getElementById('create-btn');
 const findBtn = document.getElementById('find-btn');
 const exportBtn = document.getElementById('export-btn');
 const downloadBtn = document.getElementById('download-btn');
+const checkBtn = document.getElementById('check-btn');
 
 const menuToggler = document.querySelector('.menu__toggler');
 const inputFile = document.getElementById('input-file');
@@ -140,6 +141,34 @@ exportBtn.addEventListener('click', (e) => {
   })();
 });
 
+checkBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  const file = inputFile.files[0];
+  // console.log(file);
+  let reader = new FileReader();
+  reader.readAsText(file);
+
+  reader.onload = function() {
+    const text = reader.result;
+    console.log(text);
+    csvToArray(text);
+  };
+
+});
+
+function csvToArray(text) {
+  let data = text.split('\r\n');
+  
+  for(let i = 0; i < data.length ;i++) {
+    data[i] = data[i].split(',');
+    data[i] = data[i].map(value => value.replace(/""/g, '"'));
+    data[i] = data[i].map(value => value.replace(/^"|"$/g, ''));
+
+    // console.log(data[i]);
+  }
+  console.log(data);
+
+}
 
 function downloadFile(link, url, name) {
   const date = new Date().toISOString().slice(0, 10);
@@ -159,7 +188,7 @@ function makeCSV(playlist) {
     .join(',')  // comma-separated
   ).join('\r\n');  // rows starting on new lines
 
-  csvFile += '\nPlaylist ID\n' + playlist.info.id;
+  csvFile += '\r\nPlaylist ID\r\n' + playlist.info.id;
 
   const blob = new Blob([csvFile], {type: 'text/csv;charset=utf-8;'});
   return blob;
