@@ -55,7 +55,7 @@ async function getPlaylistItems(id) {
         item.snippet.resourceId.videoId,
         item.snippet.title,
         item.snippet.videoOwnerChannelTitle,
-        item.contentDetails.videoPublishedAt,
+        item.contentDetails.videoPublishedAt.slice(0,10),
       ];
       if(addDesc) line.push(item.snippet.description);
   
@@ -159,7 +159,7 @@ function makeCSV(playlist) {
     .join(',')  // comma-separated
   ).join('\r\n');  // rows starting on new lines
 
-  csvFile += 'Playlist ID\n' + playlist.info.id;
+  csvFile += '\nPlaylist ID\n' + playlist.info.id;
 
   const blob = new Blob([csvFile], {type: 'text/csv;charset=utf-8;'});
   return blob;
