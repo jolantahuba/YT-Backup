@@ -143,31 +143,31 @@ exportBtn.addEventListener('click', (e) => {
 
 checkBtn.addEventListener('click', (e) => {
   e.preventDefault();
+  let loadedData = null;
   const file = inputFile.files[0];
   // console.log(file);
   let reader = new FileReader();
   reader.readAsText(file);
-
-  reader.onload = function() {
-    const text = reader.result;
-    console.log(text);
-    csvToArray(text);
+  reader.onload = () => {
+    const csvString = reader.result;
+    loadedData = csvToArray(csvString);
+    console.log(loadedData);
   };
 
 });
 
-function csvToArray(text) {
-  let data = text.split('\r\n');
+function csvToArray(csvStr) {
+
+  let data = csvStr.split('\r\n');
   
-  for(let i = 0; i < data.length ;i++) {
-    data[i] = data[i].split(',');
-    data[i] = data[i].map(value => value.replace(/""/g, '"'));
-    data[i] = data[i].map(value => value.replace(/^"|"$/g, ''));
+  for(let i = 0; i < data.length; i++) {
 
-    // console.log(data[i]);
+    data[i] = data[i]
+      .split(',')
+      .map(v => v.replace(/""/g, '"'))
+      .map(v => v.replace(/^"|"$/g, ''));
   }
-  console.log(data);
-
+  // console.log(data);
 }
 
 function downloadFile(link, url, name) {
