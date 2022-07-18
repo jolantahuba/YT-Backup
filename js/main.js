@@ -8,11 +8,12 @@ const checkBtn = document.getElementById('check-btn');
 
 const menuToggler = document.querySelector('.menu__toggler');
 const inputFile = document.getElementById('input-file');
+const fileLabel = document.querySelector('label[for=input-file]');
 const urlInput = document.getElementById('input-url');
 
 const apiKey = 'AIzaSyDlaaI4Y7-fklD-lscHes8jiC8tc7YnGOU';
 
-async function getPlaylistItems(id) {
+async function getPlaylistItems(id, errElement) {
   
   const addDesc = document.getElementById('add-description').checked;
   const playlistItems = [];
@@ -32,20 +33,18 @@ async function getPlaylistItems(id) {
     pushItems(result.items);
 
     while(result.nextPageToken) {
-      // console.log('continue fetching...');
       response = await fetch(itemsApi + `&pageToken=${result.nextPageToken}`);
       result = await response.json();
       pushItems(result.items);
     }
 
-    // console.log(playlistItems)
     return playlistItems;
 
   } catch(err) {
     if(err === 404) {
-      urlInput.insertAdjacentHTML('afterend', createError('Playlist not found', 'Check the URL or playlist privacy settings - should be set to public or non-public'));
+      errElement.insertAdjacentHTML('afterend', createError('Playlist not found', 'Check the URL or playlist privacy settings - should be set to public or non-public'));
     } else {
-      urlInput.insertAdjacentHTML('afterend', createError('Data retrieving problem.', 'Please try again later.'));
+      errElement.insertAdjacentHTML('afterend', createError('Data retrieving problem.', 'Please try again later.'));
     }
   }
 
@@ -73,30 +72,28 @@ async function getPlaylistInfo(id) {
   if(!result.items.length) return;
 
   const playlistInfo = {
-    id: result.items[0].id,
-    title: result.items[0].snippet.title,
-    author: result.items[0].snippet.channelTitle,
-    videos: result.items[0].contentDetails.itemCount,
+    'Playlist URL': `https://www.youtube.com/playlist?list=${result.items[0].id}`,
+    'Playlist title': result.items[0].snippet.title,
+    'Playlist author': result.items[0].snippet.channelTitle,
+    'Videos': result.items[0].contentDetails.itemCount,
   }
-    // console.log(playlistInfo)
   return playlistInfo;
 }
 
-async function getPlaylist() {
-  const playlistId = urlInput.value.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
+// async function getPlaylist(id, errElement) {
 
-  const info = await getPlaylistInfo(playlistId);
-  const items = await getPlaylistItems(playlistId);
+//   const info = await getPlaylistInfo(id);
+//   const items = await getPlaylistItems(id, errElement);
 
-  if(info && items) {
-    const playlist = {
-      info: info,
-      items:items,
-    }
-    return playlist;
-  }
+//   if(info && items) {
+//     const playlist = {
+//       info: info,
+//       items:items,
+//     }
+//     return playlist;
+//   }
 
-}
+// }
 
 createBtn.addEventListener('click', () => {
 
@@ -122,53 +119,55 @@ exportBtn.addEventListener('click', (e) => {
 
   if(!checkUrl(urlInput.value)) return;
 
-  (async () => {
-    const playlist = await getPlaylist();
-    if(!playlist) return;
-    console.log(playlist);
+  const playlistId = urlInput.value.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
 
-    const fileCSV = makeCSV(playlist);
+  (async () => {
+    const playlistInfo = await getPlaylistInfo(playlistId);
+    const playlistItems = await getPlaylistItems(playlistId, urlInput);
+    if(!playlistItems) return;
+
+    const fileCSV = makeCSV(playlistInfo, playlistItems);
     const fileUrl = URL.createObjectURL(fileCSV);
     // console.log(fileCSV);
 
     downloadBtn.addEventListener(
       'click', 
-      downloadFile(downloadBtn, fileUrl, playlist.info.title)
+      downloadFile(downloadBtn, fileUrl, playlistInfo['Playlist title'])
     );
 
-    showPlaylistInfo(playlist.info, fileCSV.size);
+    showPlaylistInfo(playlistInfo, fileCSV.size);
     showSection('export');
   })();
 });
 
 checkBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  let loadedData = null;
   const file = inputFile.files[0];
-  // console.log(file);
+
   let reader = new FileReader();
   reader.readAsText(file);
   reader.onload = () => {
-    const csvString = reader.result;
-    loadedData = csvToArray(csvString);
-    console.log(loadedData);
-  };
+    const csv = reader.result;
+    const backupData = csvToArray(csv);
+    const backupItems = backupData.slice(5,);
+    const playlistId = idFromUrl(backupData[0][1]);
+    console.log(backupItems);
+    
+    (async () => {
+      let playlistInfo = await getPlaylistInfo(playlistId);
+      let playlistItems = await getPlaylistItems(playlistId, fileLabel);
 
+      compareItems(backupItems, playlistItems);
+
+    })();
+  };
+  // reader.onerror = () => {
+  //   fileLabel.insertAdjacentHTML('afterend', createError('Cannot read the file'));
+  // }
 });
 
-function csvToArray(csvStr) {
 
-  let data = csvStr.split('\r\n');
-  
-  for(let i = 0; i < data.length; i++) {
 
-    data[i] = data[i]
-      .split(',')
-      .map(v => v.replace(/""/g, '"'))
-      .map(v => v.replace(/^"|"$/g, ''));
-  }
-  // console.log(data);
-}
 
 function downloadFile(link, url, name) {
   const date = new Date().toISOString().slice(0, 10);
@@ -177,21 +176,44 @@ function downloadFile(link, url, name) {
   link.setAttribute('download', `${name}-${date}`);
 }
 
-function makeCSV(playlist) {
-  let csvFile = '';
+function idFromUrl(url) {
+  return url.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
+}
 
-  csvFile = playlist.items.map(row =>
+function makeCSV(info, items) {
+
+  const blob = new Blob([
+    arrayToCSV(Object.entries(info)),
+    '\r\n\r\n',
+    arrayToCSV(items)
+  ], {type: 'text/csv;charset=utf-8;'});
+
+  return blob;
+}
+
+function arrayToCSV(arr) {
+  const csv = arr.map(row =>
     row
     .map(String)  // convert every value to String
     .map(v => v.replaceAll('"', '""'))  // escape double colons
     .map(v => `"${v}"`)  // quote it
     .join(',')  // comma-separated
   ).join('\r\n');  // rows starting on new lines
+  return csv;
+}
 
-  csvFile += '\r\nPlaylist ID\r\n' + playlist.info.id;
+function csvToArray(csv) {
 
-  const blob = new Blob([csvFile], {type: 'text/csv;charset=utf-8;'});
-  return blob;
+  let arr = csv.split('\r\n');
+  
+  for(let i = 0; i < arr.length; i++) {
+
+    arr[i] = arr[i]
+      .split(',')
+      .map(v => v.replace(/""/g, '"'))
+      .map(v => v.replace(/^"|"$/g, ''));
+  }
+  return arr;
 }
 
 function checkUrl(url) {
@@ -223,6 +245,7 @@ function clearError() {
 }
 
 function showSection(sectionId) {
+  clearError();
   const sections = [...document.querySelectorAll('.section')];
 
   sections
@@ -240,15 +263,13 @@ function showPlaylistInfo(info, fileSize) {
   const videos = document.querySelector('[data-label=videos');
   const size = document.querySelector('[data-label=size');
   
-  title.textContent = info.title;
-  author.textContent = info.author;
-  videos.textContent = info.videos;
+  title.textContent = info['Playlist title'];
+  author.textContent = info['Playlist author'];
+  videos.textContent = info['Videos'];
   size.textContent = (fileSize / 1024).toFixed(1) + 'KB';
 }
 
 inputFile.addEventListener('change', (e) => {
-  const fileLabel = document.querySelector('label[for=input-file]');
-
   const path = e.target.value.split('\\');
   const fileName = path[path.length-1];
   fileLabel.textContent = fileName;
