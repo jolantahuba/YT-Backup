@@ -147,18 +147,17 @@ checkBtn.addEventListener('click', (e) => {
   let reader = new FileReader();
   reader.readAsText(file);
   reader.onload = () => {
-    const csv = reader.result;
-    const backupData = csvToArray(csv);
-    const backupItems = backupData.slice(5,);
+    const backupData = csvToArray(reader.result);
     const playlistId = idFromUrl(backupData[0][1]);
-    console.log(backupItems);
+    // console.log(backupItems);
     
     (async () => {
-      let playlistInfo = await getPlaylistInfo(playlistId);
+      // let playlistInfo = await getPlaylistInfo(playlistId);
       let playlistItems = await getPlaylistItems(playlistId, fileLabel);
 
-      compareItems(backupItems, playlistItems);
+      const comparedItems = compareItems(backupData.slice(6,), playlistItems.slice(1,));
 
+      displayComparedItems(compared);
     })();
   };
   // reader.onerror = () => {
@@ -166,8 +165,52 @@ checkBtn.addEventListener('click', (e) => {
   // }
 });
 
+function compareItems(backupItems, playlistItems) {
+  const addedItems = [];
+  const removedItems = [];
+  // czy tabliczka z backupitemsu bedzie zawierała ID z playlistitemsu
+
+  for(let i = 0; i < playlistItems.length; i++) {
+    // if any of backupItems includes this playlistITEM ID?
+    if(!backupItems.some(item => item.includes(playlistItems[i][0]))) {
+      addedItems.push(playlistItems[i]);
+    }
+  }
+
+  for(let i = 0; i < backupItems.length; i++) {
+    // if any of playlistItems includes this backupITEM ID?
+    if(!playlistItems.some(item => item.includes(backupItems[i][0]))) {
+      addedItems.push(backupItems[i]);
+    }
+  }
 
 
+  console.log(addedItems);
+  console.log(removedItems);
+
+  return {
+    added: addedItems,
+    removed: removedItems,
+  }
+
+  // for(let item of backupItems) {
+  //   console.log(item);
+  //   if (playlistItems.indexOf(item) == -1 && removedItems.indexOf(item) == -1) {
+  //     // removedItems.push(item);
+  //   }
+  // }
+
+  // for(let item of playlistItems) {
+  //   if (backupItems.indexOf(item) == -1 && addedItems.indexOf(item) == -1) {
+  //     addedItems.push(item);
+  //   }
+  // }
+
+}
+
+function displayComparedItems(comparedItems) {
+  
+}
 
 function downloadFile(link, url, name) {
   const date = new Date().toISOString().slice(0, 10);
