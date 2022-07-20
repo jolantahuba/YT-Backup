@@ -144,6 +144,10 @@ checkBtn.addEventListener('click', (e) => {
     const playlistId = idFromUrl(backupData[0][1]);
     // console.log(backupItems);
     
+    if(backupData[5].includes('Description')) {
+      document.getElementById('add-description').checked = true;
+    }
+
     (async () => {
       let playlistInfo = await getPlaylistInfo(playlistId);
       let playlistItems = await getPlaylistItems(playlistId, fileLabel);
@@ -195,9 +199,12 @@ function compareItems(backupItems, playlistItems) {
 
   for(let i = 0; i < backupItems.length; i++) {
     if(!playlistItems.some(item => item.includes(backupItems[i][0]))) {
-      addedItems.push(backupItems[i]);
+      removedItems.push(backupItems[i]);
     }
   }
+
+  console.log(addedItems);
+  console.log(removedItems);
 
   return {
     added: addedItems,
@@ -211,6 +218,8 @@ function displayComparedItems(compared) {
   const addedList = document.getElementById('added-list');
   const removedList = document.getElementById('removed-list');
 
+  addedList.textContent = '';
+  removedList.textContent = '';
   addedCounter.textContent = compared.added.length;
   removedCounter.textContent = compared.removed.length;
 
