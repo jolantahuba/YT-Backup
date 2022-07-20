@@ -142,6 +142,8 @@ exportBtn.addEventListener('click', (e) => {
 
 checkBtn.addEventListener('click', (e) => {
   e.preventDefault();
+  clearError();
+
   const file = inputFile.files[0];
 
   let reader = new FileReader();
@@ -155,9 +157,10 @@ checkBtn.addEventListener('click', (e) => {
       // let playlistInfo = await getPlaylistInfo(playlistId);
       let playlistItems = await getPlaylistItems(playlistId, fileLabel);
 
-      const comparedItems = compareItems(backupData.slice(6,), playlistItems.slice(1,));
+      const compared = compareItems(backupData.slice(6,), playlistItems.slice(1,));
 
       displayComparedItems(compared);
+      showSection('compare');
     })();
   };
   // reader.onerror = () => {
@@ -208,8 +211,26 @@ function compareItems(backupItems, playlistItems) {
 
 }
 
-function displayComparedItems(comparedItems) {
-  
+function displayComparedItems(compared) {
+  const addedCounter = document.getElementById('added-counter');
+  const removedCounter = document.getElementById('removed-counter');
+  const addedList = document.getElementById('added-list');
+  const removedList = document.getElementById('removed-list');
+
+  addedCounter.textContent = compared.added.length;
+  removedCounter.textContent = compared.removed.length;
+
+  for(let item of compared.added) {
+    const li = document.createElement('li');
+    li.textContent = '+ ' + item[1];
+    addedList.appendChild(li);
+  }
+
+  for(let item of compared.removed) {
+    const li = document.createElement('li');
+    li.textContent = '- ' + item[1];
+    removedList.appendChild(li);
+  }
 }
 
 function downloadFile(link, url, name) {
