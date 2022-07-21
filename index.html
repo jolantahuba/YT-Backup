@@ -12,6 +12,7 @@
 <body>
   <div class="container">
     <div class="overlay"></div>
+    <div class="loader"></div>
 
     <header class="logo">
       <img class="logo__icon" src="icons/yt-logo.png" alt="YouTube logo">
@@ -30,9 +31,6 @@
     <div class="section-wrapper">
 
       <section class="create section active" id="create">
-
-        <div class="loader"></div>
-
         <header class="section__header">
           <h2 class="section__heading">Create playlist backup</h2>
           <p class="section__desc">Export your YouTube playlist data to file.</p>
@@ -48,7 +46,7 @@
 
           <div class="create__checkbox-wrapper">
             <input type="checkbox" class="checkbox" name="description" id="add-description">
-            <label for="add-description" class="label">Include viedo description</label>
+            <label for="add-description" class="label">Include video description</label>
           </div>
   
           <button class="create__btn btn" id="export-btn">Export</button>
@@ -94,6 +92,7 @@
 
   
       <section class="find section"  id="find">
+
         <header class="section__header">
           <h2 class="section__heading">Find missing videos</h2>
           <p class="section__desc">Check what has been removed or added to the playlist since your backup.</p>

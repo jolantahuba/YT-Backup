@@ -47,7 +47,6 @@ async function getPlaylistItems(id, errElement) {
       pushItems(result.items);
     }
 
-    console.log(playlistItems)
     return playlistItems;
 
   } 
@@ -126,10 +125,10 @@ exportBtn.addEventListener('click', (e) => {
   (async () => {
     const playlistInfo = await getPlaylistInfo(playlistId);
     const playlistItems = await getPlaylistItems(playlistId, urlInput);
-    // correct 'Videos' value, there is wrong value from API - refactor
-    playlistInfo['Videos'] = playlistItems.length - 1;
 
     if(!playlistItems) return;
+    // videos amount without private
+    playlistInfo['Videos'] = playlistItems.length - 1;
 
     const fileCSV = makeCSV(playlistInfo, playlistItems);
     const fileUrl = URL.createObjectURL(fileCSV);
@@ -156,6 +155,7 @@ checkBtn.addEventListener('click', (e) => {
   reader.onload = () => {
     const backupData = csvToArray(reader.result);
     if(!checkUrl(backupData[0][1])) {
+      clearError();
       fileLabel.insertAdjacentHTML('afterend', createError('Cannot read the data', 'Check the URL or playlist privacy settings - should be set to public or unlisted'));
       return;
     }
@@ -169,7 +169,7 @@ checkBtn.addEventListener('click', (e) => {
     (async () => {
       let playlistInfo = await getPlaylistInfo(playlistId);
       let playlistItems = await getPlaylistItems(playlistId, fileLabel);
-      // correct 'Videos' value, there is wrong value from API - refactor
+      // videos amount without private
       playlistInfo['Videos'] = playlistItems.length - 1;
       
       const compared = compareItems(backupData.slice(6,), playlistItems.slice(1,));
@@ -257,7 +257,7 @@ function downloadFile(element, url, name) {
   const date = new Date().toISOString().slice(0, 10);
 
   element.setAttribute("href", url);
-  element.setAttribute('download', `${name}-${date}`);
+  element.setAttribute('download', `${name.split(' ').join('-')}-${date}`);
 }
 
 function idFromUrl(url) {
