@@ -8,6 +8,17 @@
   padding: 2rem 0;
 }
 
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 98;
+  background-color: rgba(255,255,255,.5);
+  display: none;
+  &.active {
+    display: block;
+  }
+}
+
 .logo {
   display: flex;
   align-items: center;

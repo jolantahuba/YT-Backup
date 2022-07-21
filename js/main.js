@@ -12,6 +12,8 @@ const menuToggler = document.querySelector('.menu__toggler');
 const inputFile = document.getElementById('input-file');
 const fileLabel = document.querySelector('label[for=input-file]');
 const urlInput = document.getElementById('input-url');
+const overlay = document.querySelector('.overlay');
+const loader = document.querySelector('.loader');
 
 const apiKey = 'AIzaSyDlaaI4Y7-fklD-lscHes8jiC8tc7YnGOU';
 
@@ -26,6 +28,9 @@ async function getPlaylistItems(id, errElement) {
   playlistItems.push(headers);
 
   try {
+    overlay.classList.add('active');
+    loader.classList.add('active');
+
     let response = await fetch(itemsApi);
     if(!response.ok) {
       throw response.status;
@@ -48,6 +53,9 @@ async function getPlaylistItems(id, errElement) {
     } else {
       errElement.insertAdjacentHTML('afterend', createError('Data retrieving problem.', 'Please try again later.'));
     }
+  } finally {
+    overlay.classList.remove('active');
+    loader.classList.remove('active');
   }
 
   function pushItems(items) {
@@ -202,10 +210,7 @@ function compareItems(backupItems, playlistItems) {
       removedItems.push(backupItems[i]);
     }
   }
-
-  console.log(addedItems);
-  console.log(removedItems);
-
+  
   return {
     added: addedItems,
     removed: removedItems,
