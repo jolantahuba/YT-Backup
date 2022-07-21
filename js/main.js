@@ -37,7 +37,9 @@ async function getPlaylistItems(id, errElement) {
     }
 
     let result = await response.json();
+
     pushItems(result.items);
+
 
     while(result.nextPageToken) {
       response = await fetch(itemsApi + `&pageToken=${result.nextPageToken}`);
@@ -45,9 +47,11 @@ async function getPlaylistItems(id, errElement) {
       pushItems(result.items);
     }
 
+    console.log(playlistItems)
     return playlistItems;
 
-  } catch(err) {
+  } 
+  catch(err) {
     if(err === 404) {
       errElement.insertAdjacentHTML('afterend', createError('Playlist not found', 'Check the URL or playlist privacy settings - should be set to public or unlisted'));
     } else {
@@ -60,7 +64,10 @@ async function getPlaylistItems(id, errElement) {
 
   function pushItems(items) {
     for(let item of items){
-
+      // Skipping private videos
+      // if(item.snippet.title === 'Private video') continue;
+      if(!item.contentDetails.videoPublishedAt) continue;
+      
       const line = [
         item.snippet.resourceId.videoId,
         item.snippet.title,
@@ -119,6 +126,9 @@ exportBtn.addEventListener('click', (e) => {
   (async () => {
     const playlistInfo = await getPlaylistInfo(playlistId);
     const playlistItems = await getPlaylistItems(playlistId, urlInput);
+    // correct 'Videos' value, there is wrong value from API - refactor
+    playlistInfo['Videos'] = playlistItems.length - 1;
+
     if(!playlistItems) return;
 
     const fileCSV = makeCSV(playlistInfo, playlistItems);
@@ -159,7 +169,9 @@ checkBtn.addEventListener('click', (e) => {
     (async () => {
       let playlistInfo = await getPlaylistInfo(playlistId);
       let playlistItems = await getPlaylistItems(playlistId, fileLabel);
-
+      // correct 'Videos' value, there is wrong value from API - refactor
+      playlistInfo['Videos'] = playlistItems.length - 1;
+      
       const compared = compareItems(backupData.slice(6,), playlistItems.slice(1,));
 
       updateBtn.addEventListener('click', () => {
