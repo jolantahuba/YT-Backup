@@ -65,6 +65,8 @@ async function getPlaylist(id, errElement) {
     } else {
       errElement.insertAdjacentHTML('afterend', createError('Data retrieving problem.', 'Please try again later.'));
     }
+    // throw new Error('Playlist not found');
+
   } finally {
     overlay.classList.remove('active');
     loader.classList.remove('active');
@@ -117,30 +119,33 @@ findBtn.addEventListener('click', () => {
 
 });
 
-exportBtn.addEventListener('click', (e) => {
+exportBtn.addEventListener('click', async (e) => {
   e.preventDefault();
-  clearError();
 
-  if(!checkUrl(urlInput.value)) return;
+  // let playlist = null;
+  // try{
+  //   const playlistId = getId(urlInput.value, urlInput);
+  //   playlist = await getPlaylist(playlistId, urlInput);
+  // } catch(err) {
+  //   return;
+  // }
 
-  const playlistId = urlInput.value.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
+  const playlistId = getId(urlInput.value, urlInput);
+  if(!playlistId) return;
 
-  (async () => {
-    const playlist = await getPlaylist(playlistId, urlInput);
-    if(!playlist) return;
+  const playlist = await getPlaylist(playlistId, urlInput);
+  if(!playlist) return;
 
-    const fileCSV = makeCSV(playlist.info, playlist.items);
-    const fileUrl = URL.createObjectURL(fileCSV);
-    // console.log(fileCSV);
+  const fileCSV = makeCSV(playlist.info, playlist.items);
+  const fileUrl = URL.createObjectURL(fileCSV);
 
-    downloadBtn.addEventListener(
-      'click', 
-      downloadFile(downloadBtn, fileUrl, playlist.info['Playlist title'])
-    );
+  downloadBtn.addEventListener(
+    'click', 
+    downloadFile(downloadBtn, fileUrl, playlist.info['Playlist title'])
+  );
 
-    showPlaylistInfo(playlist.info, fileCSV.size);
-    showSection('export');
-  })();
+  showPlaylistInfo(playlist.info, fileCSV.size);
+  showSection('export');
 });
 
 checkBtn.addEventListener('click', (e) => {
@@ -159,6 +164,7 @@ checkBtn.addEventListener('click', (e) => {
       return;
     }
     const playlistId = idFromUrl(backupData[0][1]);
+    // const playlistId = getId(backupData[0][1], fileLabel);
     // console.log(backupItems);
     
     if(backupData[5].includes('Description')) {
@@ -257,10 +263,6 @@ function downloadFile(element, url, name) {
   element.setAttribute('download', `${name.split(' ').join('-')}-${date}`);
 }
 
-function idFromUrl(url) {
-  return url.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
-}
-
 function makeCSV(info, items) {
 
   const blob = new Blob([
@@ -297,16 +299,21 @@ function csvToArray(csv) {
   return arr;
 }
 
-function checkUrl(url) {
+function getId(url, err) {
   const regex = /(https:\/\/)?(www\.)?(m.)?youtube\.com.*[?&]list=.*/;
   const result = regex.test(url);
   if(!result) {
-    urlInput.insertAdjacentHTML('afterend', createError('Invalid URL'));
+    err.insertAdjacentHTML('afterend', createError('Invalid URL'));
+    return;
+    // throw new Error('Invalid URL');
   }
-  return result;
+
+  const id = url.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
+  return id;
 }
 
 function createError(title, desc) {
+  clearError();
 
   let errorElement = `
   <div class="error">
