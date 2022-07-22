@@ -17,40 +17,51 @@ const loader = document.querySelector('.loader');
 
 const apiKey = 'AIzaSyDlaaI4Y7-fklD-lscHes8jiC8tc7YnGOU';
 
-async function getPlaylistItems(id, errElement) {
+async function getPlaylist(id, errElement) {
   
   const addDesc = document.getElementById('add-description').checked;
-  const playlistItems = [];
-  const itemsApi = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=50&playlistId=${id}&key=${apiKey}`;
+  const playlist = {
+    info: null,
+    items: [],
+  };
+  const itemsApi = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=5&playlistId=${id}&key=${apiKey}`;
+  const playlistApi = `https://youtube.googleapis.com/youtube/v3/playlists?part=snippet%2CcontentDetails&id=${id}&key=${apiKey}`;
 
   const headers = ['ID', 'Title', 'Channel', 'PublishedAt']
   if(addDesc) headers.push('Description');
-  playlistItems.push(headers);
+  playlist.items.push(headers);
 
   try {
     overlay.classList.add('active');
     loader.classList.add('active');
 
-    let response = await fetch(itemsApi);
-    if(!response.ok) {
-      throw response.status;
+    let responses = await Promise.all([
+      fetch(itemsApi),
+      fetch(playlistApi)
+    ]);
+
+    responses.forEach(res => {
+      if(!res.ok) throw res.status;
+    })
+
+    let [resultItems, resultInfo] = await Promise.all(
+      responses.map(r => r.json())
+    );
+
+    pushInfo(resultInfo);
+    pushItems(resultItems.items);
+
+    while(resultItems.nextPageToken) {
+      let resp = await fetch(itemsApi + `&pageToken=${resultItems.nextPageToken}`);
+      resultItems = await resp.json();
+      pushItems(resultItems.items);
     }
 
-    let result = await response.json();
+    console.log(playlist)
+    return playlist;
 
-    pushItems(result.items);
-
-
-    while(result.nextPageToken) {
-      response = await fetch(itemsApi + `&pageToken=${result.nextPageToken}`);
-      result = await response.json();
-      pushItems(result.items);
-    }
-
-    return playlistItems;
-
-  } 
-  catch(err) {
+  } catch(err) {
+    console.log(err)
     if(err === 404) {
       errElement.insertAdjacentHTML('afterend', createError('Playlist not found', 'Check the URL or playlist privacy settings - should be set to public or unlisted'));
     } else {
@@ -75,25 +86,18 @@ async function getPlaylistItems(id, errElement) {
       ];
       if(addDesc) line.push(item.snippet.description);
   
-      playlistItems.push(line);
+      playlist.items.push(line);
     }
   }
-}
 
-async function getPlaylistInfo(id) {
-  const playlistApi = `https://youtube.googleapis.com/youtube/v3/playlists?part=snippet%2CcontentDetails&id=${id}&key=${apiKey}`;
-
-  const response = await fetch(playlistApi);
-  let result = await response.json();
-  if(!result.items.length) return;
-
-  const playlistInfo = {
-    'Playlist URL': `https://www.youtube.com/playlist?list=${result.items[0].id}`,
-    'Playlist title': result.items[0].snippet.title,
-    'Playlist author': result.items[0].snippet.channelTitle,
-    'Videos': result.items[0].contentDetails.itemCount,
+  function pushInfo(info) {
+    playlist.info = {
+      'Playlist URL': `https://www.youtube.com/playlist?list=${info.items[0].id}`,
+      'Playlist title': info.items[0].snippet.title,
+      'Playlist author': info.items[0].snippet.channelTitle,
+      'Videos': info.items[0].contentDetails.itemCount,
+    }
   }
-  return playlistInfo;
 }
 
 createBtn.addEventListener('click', () => {
@@ -144,68 +148,68 @@ exportBtn.addEventListener('click', (e) => {
   })();
 });
 
-checkBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  clearError();
+// checkBtn.addEventListener('click', (e) => {
+//   e.preventDefault();
+//   clearError();
 
-  const file = inputFile.files[0];
+//   const file = inputFile.files[0];
 
-  let reader = new FileReader();
-  reader.readAsText(file);
-  reader.onload = () => {
-    const backupData = csvToArray(reader.result);
-    if(!checkUrl(backupData[0][1])) {
-      clearError();
-      fileLabel.insertAdjacentHTML('afterend', createError('Cannot read the data', 'Check the URL or playlist privacy settings - should be set to public or unlisted'));
-      return;
-    }
-    const playlistId = idFromUrl(backupData[0][1]);
-    // console.log(backupItems);
+//   let reader = new FileReader();
+//   reader.readAsText(file);
+//   reader.onload = () => {
+//     const backupData = csvToArray(reader.result);
+//     if(!checkUrl(backupData[0][1])) {
+//       clearError();
+//       fileLabel.insertAdjacentHTML('afterend', createError('Cannot read the data', 'Check the URL or playlist privacy settings - should be set to public or unlisted'));
+//       return;
+//     }
+//     const playlistId = idFromUrl(backupData[0][1]);
+//     // console.log(backupItems);
     
-    if(backupData[5].includes('Description')) {
-      document.getElementById('add-description').checked = true;
-    }
+//     if(backupData[5].includes('Description')) {
+//       document.getElementById('add-description').checked = true;
+//     }
 
-    (async () => {
-      let playlistInfo = await getPlaylistInfo(playlistId);
-      let playlistItems = await getPlaylistItems(playlistId, fileLabel);
-      // videos amount without private
-      playlistInfo['Videos'] = playlistItems.length - 1;
+//     (async () => {
+//       let playlistInfo = await getPlaylistInfo(playlistId);
+//       let playlistItems = await getPlaylistItems(playlistId, fileLabel);
+//       // videos amount without private
+//       playlistInfo['Videos'] = playlistItems.length - 1;
       
-      const compared = compareItems(backupData.slice(6,), playlistItems.slice(1,));
+//       const compared = compareItems(backupData.slice(6,), playlistItems.slice(1,));
 
-      updateBtn.addEventListener('click', () => {
-        const csvFile = makeCSV(playlistInfo, playlistItems);
-        showSection('export');
-        downloadFile(
-          downloadBtn,
-          URL.createObjectURL(csvFile),
-          playlistInfo['Playlist title']
-        );
-        showPlaylistInfo(playlistInfo, csvFile.size);
-      });
+//       updateBtn.addEventListener('click', () => {
+//         const csvFile = makeCSV(playlistInfo, playlistItems);
+//         showSection('export');
+//         downloadFile(
+//           downloadBtn,
+//           URL.createObjectURL(csvFile),
+//           playlistInfo['Playlist title']
+//         );
+//         showPlaylistInfo(playlistInfo, csvFile.size);
+//       });
 
-      downloadChangesBtn.addEventListener('click', () => {
-        const changesFile = new Blob([
-          `"Added videos: ${compared.added.length}"\r\n`,
-          arrayToCSV(compared.added),
-          '\r\n\r\n',
-          `"Removed videos: ${compared.removed.length}"\r\n`,
-          arrayToCSV(compared.removed)
-        ], {type: 'text/csv;charset=utf-8;'});
+//       downloadChangesBtn.addEventListener('click', () => {
+//         const changesFile = new Blob([
+//           `"Added videos: ${compared.added.length}"\r\n`,
+//           arrayToCSV(compared.added),
+//           '\r\n\r\n',
+//           `"Removed videos: ${compared.removed.length}"\r\n`,
+//           arrayToCSV(compared.removed)
+//         ], {type: 'text/csv;charset=utf-8;'});
         
-        downloadFile(
-          downloadChangesBtn,
-          URL.createObjectURL(changesFile),
-          'playlist-changes'
-        );
-      });
+//         downloadFile(
+//           downloadChangesBtn,
+//           URL.createObjectURL(changesFile),
+//           'playlist-changes'
+//         );
+//       });
 
-      displayComparedItems(compared);
-      showSection('compare');
-    })();
-  };  
-});
+//       displayComparedItems(compared);
+//       showSection('compare');
+//     })();
+//   };  
+// });
 
 function compareItems(backupItems, playlistItems) {
   const addedItems = [];
