@@ -17,7 +17,108 @@ const loader = document.querySelector('.loader');
 
 const apiKey = 'AIzaSyDlaaI4Y7-fklD-lscHes8jiC8tc7YnGOU';
 
-async function getPlaylist(id, errHandler) {
+createBtn.addEventListener('click', () => {
+
+  showSection('create');
+  findBtn.classList.remove('active');
+  createBtn.classList.add('active');
+  menuToggler.classList.remove('switched');
+
+});
+
+findBtn.addEventListener('click', () => {
+
+  showSection('find');
+  createBtn.classList.remove('active');
+  findBtn.classList.add('active');
+  menuToggler.classList.add('switched');
+
+});
+
+exportBtn.addEventListener('click', async (e) => {
+  e.preventDefault();
+  
+  let playlist = null;
+
+  try {
+    const playlistId = getId(urlInput.value);
+    playlist = await getPlaylist(playlistId);
+  } catch(err) {
+    if(err.message == 'Invalid URL') {
+      createError(urlInput, err.message);
+    } else if(err.message == 'Playlist not found') {
+      createError(urlInput, err.message, 'Check the URL or playlist privacy settings - should be set to public or unlisted');
+    } else {
+      createError(urlInput, 'Data retrieving problem', 'Please try again later');
+    }
+    return;
+  }
+
+  const backupFile = playlistToCSV(playlist.info, playlist.items);
+
+  downloadBtn.addEventListener(
+    'click', 
+    downloadFile(downloadBtn, backupFile, playlist.info['Playlist title'])
+  );
+
+  showPlaylistInfo(playlist.info, backupFile.size);
+  showSection('export');
+});
+
+checkBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  
+  const reader = new FileReader();
+  reader.readAsText(fileInput.files[0]);
+  
+  reader.onload = async () => {
+    let backup, playlist, diff = null;
+
+    try{
+      backup = csvToPlaylist(reader.result);
+      const playlistId = getId(backup.info['Playlist URL']);
+
+      if(backup.items[0].includes('Description')) {
+        document.getElementById('add-description').checked = true;
+      }
+
+      playlist = await getPlaylist(playlistId);
+      diff = compareItems(backup.items, playlist.items);
+
+    } catch(err) { 
+      if(err.message == 'Playlist not found') {
+        createError(fileLabel, err.message, 'Check the Playlist URL in your backup file');
+      } else {
+        createError(fileLabel, 'Cannot read the data', 'Your backup file could have corrupted data');
+      }
+      return;
+    }
+
+    updateBtn.addEventListener('click', () => {
+      const playlistFile = playlistToCSV(playlist.info, playlist.items);
+      downloadFile(downloadBtn, playlistFile, playlist.info['Playlist title']);
+      showPlaylistInfo(playlist.info, playlistFile.size);
+      showSection('export');
+    });
+
+    downloadChangesBtn.addEventListener('click', () => {
+      const changesFile = new Blob([
+        `"Added videos: ${compared.added.length}"\r\n`,
+        arrayToCSV(compared.added),
+        '\r\n\r\n',
+        `"Removed videos: ${compared.removed.length}"\r\n`,
+        arrayToCSV(compared.removed)
+      ], {type: 'text/csv;charset=utf-8;'});
+      
+      downloadFile(downloadChangesBtn, changesFile, 'playlist-changes');
+    });
+
+    showComparedItems(diff);
+    showSection('compare');
+  };  
+});
+
+async function getPlaylist(id) {
   
   const addDesc = document.getElementById('add-description').checked;
   const playlist = {
@@ -61,9 +162,9 @@ async function getPlaylist(id, errHandler) {
 
   } catch(err) {
     if(err === 404) {
-      createError(errHandler, 'Playlist not found', 'Check the URL or playlist privacy settings - should be set to public or unlisted');
+      throw new Error('Playlist not found');
     } else {
-      createError(errHandler, 'Data retrieving problem', 'Please try again later');
+      throw new Error('Data fetching problem');
     }
   } finally {
     overlay.classList.remove('active');
@@ -99,105 +200,63 @@ async function getPlaylist(id, errHandler) {
   }
 }
 
-createBtn.addEventListener('click', () => {
+function getId(url) {
+  const regex = /(https:\/\/)?(www\.)?(m.)?youtube\.com.*[?&]list=.*/;
+  const result = regex.test(url);
 
-  showSection('create');
-  findBtn.classList.remove('active');
-  createBtn.classList.add('active');
-  menuToggler.classList.remove('switched');
+  if(!result) {
+    throw new Error('Invalid URL');
+  }
 
-});
+  const id = url.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
+  return id;
+}
 
-findBtn.addEventListener('click', () => {
+function downloadFile(element, file, name) {
+  const date = new Date().toISOString().slice(0, 10);
 
-  showSection('find');
-  createBtn.classList.remove('active');
-  findBtn.classList.add('active');
-  menuToggler.classList.add('switched');
+  element.setAttribute("href", URL.createObjectURL(file));
+  element.setAttribute('download', `${name.split(' ').join('-')}-${date}`);
+}
 
-});
+function arrayToCSV(arr) {
+  const csv = arr.map(row =>
+    row
+    .map(String)  // convert every value to String
+    .map(v => v.replaceAll('"', '""'))  // escape double colons
+    .map(v => `"${v}"`)  // quote it
+    .join(',')  // comma-separated
+  ).join('\r\n');  // rows starting on new lines
+  return csv;
+}
 
-exportBtn.addEventListener('click', async (e) => {
-  e.preventDefault();
+function playlistToCSV(info, items) {
 
-  const playlistId = getId(urlInput.value, urlInput);
-  if(!playlistId) return;
+  const blob = new Blob([
+    arrayToCSV(Object.entries(info)),
+    '\r\n\r\n',
+    arrayToCSV(items)
+  ], {type: 'text/csv;charset=utf-8;'});
 
-  const playlist = await getPlaylist(playlistId, urlInput);
-  if(!playlist) return;
+  return blob;
+}
 
-  const backupFile = createBackupFile(playlist.info, playlist.items);
+function csvToPlaylist(csv) {
 
-  downloadBtn.addEventListener(
-    'click', 
-    downloadFile(downloadBtn, backupFile, playlist.info['Playlist title'])
-  );
+  let arr = csv.split('\r\n');
 
-  showPlaylistInfo(playlist.info, backupFile.size);
-  showSection('export');
-});
+  for(let i = 0; i < arr.length; i++) {
+    arr[i] = arr[i]
+      .split(',')
+      .map(v => v.replace(/""/g, '"'))
+      .map(v => v.replace(/^"|"$/g, ''));
+  }
 
-checkBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  clearError();
-
-  const file = fileInput.files[0];
-
-  let reader = new FileReader();
-  reader.readAsText(file);
-  reader.onload = () => {
-    const backupData = csvToArray(reader.result);
-    if(!checkUrl(backupData[0][1])) {
-      clearError();
-      fileLabel.insertAdjacentHTML('afterend', createError('Cannot read the data', 'Check the URL or playlist privacy settings - should be set to public or unlisted'));
-      return;
-    }
-    const playlistId = idFromUrl(backupData[0][1]);
-    // const playlistId = getId(backupData[0][1], fileLabel);
-    // console.log(backupItems);
-    
-    if(backupData[5].includes('Description')) {
-      document.getElementById('add-description').checked = true;
-    }
-
-    (async () => {
-      const playlist = await getPlaylist(playlistId, urlInput);
-      if(!playlist) return;
-      
-      const compared = compareItems(backupData.slice(6,), playlist.items.slice(1,));
-
-      updateBtn.addEventListener('click', () => {
-        const csvFile = makeCSV(playlist.info, playlist.items);
-        showSection('export');
-        downloadFile(
-          downloadBtn,
-          URL.createObjectURL(csvFile),
-          playlist.info['Playlist title']
-        );
-        showPlaylistInfo(playlist.info, csvFile.size);
-      });
-
-      downloadChangesBtn.addEventListener('click', () => {
-        const changesFile = new Blob([
-          `"Added videos: ${compared.added.length}"\r\n`,
-          arrayToCSV(compared.added),
-          '\r\n\r\n',
-          `"Removed videos: ${compared.removed.length}"\r\n`,
-          arrayToCSV(compared.removed)
-        ], {type: 'text/csv;charset=utf-8;'});
-        
-        downloadFile(
-          downloadChangesBtn,
-          URL.createObjectURL(changesFile),
-          'playlist-changes'
-        );
-      });
-
-      displayComparedItems(compared);
-      showSection('compare');
-    })();
-  };  
-});
+  return {
+    info: Object.fromEntries(arr.slice(0, 4)),
+    items: arr.slice(5,),
+  }
+}
 
 function compareItems(backupItems, playlistItems) {
   const addedItems = [];
@@ -221,89 +280,11 @@ function compareItems(backupItems, playlistItems) {
   }
 }
 
-function displayComparedItems(compared) {
-  const addedCounter = document.getElementById('added-counter');
-  const removedCounter = document.getElementById('removed-counter');
-  const addedList = document.getElementById('added-list');
-  const removedList = document.getElementById('removed-list');
-
-  addedList.textContent = '';
-  removedList.textContent = '';
-  addedCounter.textContent = compared.added.length;
-  removedCounter.textContent = compared.removed.length;
-
-  for(let item of compared.added) {
-    const li = document.createElement('li');
-    li.textContent = '+ ' + item[1];
-    addedList.appendChild(li);
-  }
-
-  for(let item of compared.removed) {
-    const li = document.createElement('li');
-    li.textContent = '- ' + item[1];
-    removedList.appendChild(li);
-  }
-}
-
-function downloadFile(element, file, name) {
-  const date = new Date().toISOString().slice(0, 10);
-
-  element.setAttribute("href", URL.createObjectURL(file));
-  element.setAttribute('download', `${name.split(' ').join('-')}-${date}`);
-}
-
-function createBackupFile(info, items) {
-
-  const blob = new Blob([
-    arrayToCSV(Object.entries(info)),
-    '\r\n\r\n',
-    arrayToCSV(items)
-  ], {type: 'text/csv;charset=utf-8;'});
-
-  return blob;
-}
-
-function arrayToCSV(arr) {
-  const csv = arr.map(row =>
-    row
-    .map(String)  // convert every value to String
-    .map(v => v.replaceAll('"', '""'))  // escape double colons
-    .map(v => `"${v}"`)  // quote it
-    .join(',')  // comma-separated
-  ).join('\r\n');  // rows starting on new lines
-  return csv;
-}
-
-function csvToArray(csv) {
-
-  let arr = csv.split('\r\n');
-  
-  for(let i = 0; i < arr.length; i++) {
-
-    arr[i] = arr[i]
-      .split(',')
-      .map(v => v.replace(/""/g, '"'))
-      .map(v => v.replace(/^"|"$/g, ''));
-  }
-  return arr;
-}
-
-function getId(url, errHandler) {
-  const regex = /(https:\/\/)?(www\.)?(m.)?youtube\.com.*[?&]list=.*/;
-  const result = regex.test(url);
-  if(!result) {
-    createError(errHandler,'Invalid URL');
-    return;
-  }
-
-  const id = url.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
-  return id;
-}
-
 function createError(element, title, message) {
-  clearError();
+  let error = document.querySelector('.error');
+  if(error) error.remove();
 
-  let error = `
+  error = `
   <div class="error">
     <div class="error__title">
       <img src="icons/error.svg" alt="">
@@ -315,13 +296,7 @@ function createError(element, title, message) {
   element.insertAdjacentHTML('afterend', error);
 }
 
-function clearError() {
-  const error = document.querySelector('.error');
-  if(error) error.remove();
-}
-
 function showSection(sectionId) {
-  clearError();
   const sections = [...document.querySelectorAll('.section')];
 
   sections
@@ -343,6 +318,30 @@ function showPlaylistInfo(info, fileSize) {
   author.textContent = info['Playlist author'];
   videos.textContent = info['Videos'];
   size.textContent = (fileSize / 1024).toFixed(1) + 'KB';
+}
+
+function showComparedItems(compared) {
+  const addedCounter = document.getElementById('added-counter');
+  const removedCounter = document.getElementById('removed-counter');
+  const addedList = document.getElementById('added-list');
+  const removedList = document.getElementById('removed-list');
+
+  addedList.textContent = '';
+  removedList.textContent = '';
+  addedCounter.textContent = compared.added.length;
+  removedCounter.textContent = compared.removed.length;
+
+  for(let item of compared.added) {
+    const li = document.createElement('li');
+    li.textContent = '+ ' + item[1];
+    addedList.appendChild(li);
+  }
+
+  for(let item of compared.removed) {
+    const li = document.createElement('li');
+    li.textContent = '- ' + item[1];
+    removedList.appendChild(li);
+  }
 }
 
 fileInput.addEventListener('change', (e) => {
