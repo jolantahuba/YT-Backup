@@ -350,6 +350,12 @@ function showComparedItems(compared) {
 }
 
 fileInput.addEventListener('change', (e) => {
+  if(!e.target.value) {
+    fileLabel.innerHTML = `
+    <img src="icons/file.svg" alt="">
+    Choose your backup file`
+    return;
+  }
   const path = e.target.value.split('\\');
   const fileName = path[path.length-1];
   fileLabel.textContent = fileName;
