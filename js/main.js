@@ -131,7 +131,7 @@ async function getPlaylist(id) {
     info: null,
     items: [],
   };
-  const itemsApi = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=5&playlistId=${id}&key=${apiKey}`;
+  const itemsApi = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=50&playlistId=${id}&key=${apiKey}`;
   const playlistApi = `https://youtube.googleapis.com/youtube/v3/playlists?part=snippet%2CcontentDetails&id=${id}&key=${apiKey}`;
 
   const headers = ['ID', 'Title', 'Channel', 'PublishedAt']
