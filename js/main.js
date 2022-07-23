@@ -72,12 +72,12 @@ checkBtn.addEventListener('click', (e) => {
     createError(fileLabel, 'Add your backup file');
     return;
   }
-  
+
   const reader = new FileReader();
   reader.readAsText(fileInput.files[0]);
   
   reader.onload = async () => {
-    let backup, playlist, diff = null;
+    let backup, playlist, changes = null;
 
     try{
       backup = csvToPlaylist(reader.result);
@@ -88,7 +88,7 @@ checkBtn.addEventListener('click', (e) => {
       }
 
       playlist = await getPlaylist(playlistId);
-      diff = compareItems(backup.items, playlist.items);
+      changes = compareItems(backup.items, playlist.items);
 
     } catch(err) { 
       if(err.message == 'Playlist not found') {
@@ -108,17 +108,17 @@ checkBtn.addEventListener('click', (e) => {
 
     downloadChangesBtn.addEventListener('click', () => {
       const changesFile = new Blob([
-        `"Added videos: ${compared.added.length}"\r\n`,
-        arrayToCSV(compared.added),
+        `"Added videos: ${changes.added.length}"\r\n`,
+        arrayToCSV(changes.added),
         '\r\n\r\n',
-        `"Removed videos: ${compared.removed.length}"\r\n`,
-        arrayToCSV(compared.removed)
+        `"Removed videos: ${changes.removed.length}"\r\n`,
+        arrayToCSV(changes.removed)
       ], {type: 'text/csv;charset=utf-8;'});
       
       downloadFile(downloadChangesBtn, changesFile, 'playlist-changes');
     });
 
-    showComparedItems(diff);
+    showComparedItems(changes);
     showSection('compare');
   };  
 });
