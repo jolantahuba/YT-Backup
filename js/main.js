@@ -68,6 +68,11 @@ exportBtn.addEventListener('click', async (e) => {
 checkBtn.addEventListener('click', (e) => {
   e.preventDefault();
   
+  if(!fileInput.files[0]) {
+    createError(fileLabel, 'Add your backup file');
+    return;
+  }
+  
   const reader = new FileReader();
   reader.readAsText(fileInput.files[0]);
   
