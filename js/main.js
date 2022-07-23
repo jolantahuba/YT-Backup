@@ -18,21 +18,22 @@ const loader = document.querySelector('.loader');
 const apiKey = 'AIzaSyDlaaI4Y7-fklD-lscHes8jiC8tc7YnGOU';
 
 createBtn.addEventListener('click', () => {
+  clearError();
+  urlInput.value = '';
 
-  showSection('create');
   findBtn.classList.remove('active');
   createBtn.classList.add('active');
   menuToggler.classList.remove('switched');
-
+  showSection('create');
 });
 
 findBtn.addEventListener('click', () => {
-
-  showSection('find');
+  clearError();
   createBtn.classList.remove('active');
   findBtn.classList.add('active');
   menuToggler.classList.add('switched');
 
+  showSection('find');
 });
 
 exportBtn.addEventListener('click', async (e) => {
@@ -286,10 +287,9 @@ function compareItems(backupItems, playlistItems) {
 }
 
 function createError(element, title, message) {
-  let error = document.querySelector('.error');
-  if(error) error.remove();
+  clearError();
 
-  error = `
+  let error = `
   <div class="error">
     <div class="error__title">
       <img src="icons/error.svg" alt="">
@@ -299,6 +299,11 @@ function createError(element, title, message) {
   </div>`;
 
   element.insertAdjacentHTML('afterend', error);
+}
+
+function clearError() {
+  let error = document.querySelector('.error');
+  if(error) error.remove();
 }
 
 function showSection(sectionId) {
