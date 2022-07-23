@@ -1,3 +1,9 @@
+html {
+  @media(min-width: 64em) {
+    font-size: 1.1em;
+  }
+}
+
 .container {
   display: grid;
   grid-template-columns: 100%;
@@ -23,9 +29,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(2.7rem, calc(4vw + 1.2rem), 3.6rem);
+  font-size: clamp(2.7rem, calc(4vw + 1.2rem), 3.5rem);
   font-family: $ff;
-  margin-top: 9vh;
+  margin-top: 7vh;
   margin-bottom: 2rem;
 
   &__icon {
@@ -201,7 +207,7 @@
 
   &__btn {
     align-self: center;
-    margin-top: 2rem;
+    margin-top: 1.4rem;
   }
 }
 
@@ -215,7 +221,7 @@
   &__info {
     font-size: .9rem;
     color: $cl-text;
-    margin: 2rem .7rem;
+    margin: 1.6rem .7rem;
 
     &-wrapper {
       display: flex;
