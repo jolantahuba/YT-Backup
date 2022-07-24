@@ -61,6 +61,22 @@
   color: $cl-text;
 }
 
+.link {
+  position: relative;
+  color: $cl-secondary;
+  text-decoration: none;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    border-bottom: 1px dashed $cl-secondary;
+  }
+}
+
 .checkbox {
   width: 1.2em;
   height: 1.2em;

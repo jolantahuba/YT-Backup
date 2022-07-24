@@ -140,21 +140,21 @@ html {
       margin-top: -0.1em;
     }
     
-    & a {
-      position: relative;
-      color: $cl-secondary;
-      text-decoration: none;
-    }
+    // & a {
+    //   position: relative;
+    //   color: $cl-secondary;
+    //   text-decoration: none;
+    // }
     
-    & a::after {
-      content: '';
-      position: absolute;
-      bottom: 0px;
-      left: 0;
-      width: 100%;
-      height: 1px;
-      border-bottom: 1px dashed $cl-secondary;
-    }
+    // & a::after {
+    //   content: '';
+    //   position: absolute;
+    //   bottom: 0px;
+    //   left: 0;
+    //   width: 100%;
+    //   height: 1px;
+    //   border-bottom: 1px dashed $cl-secondary;
+    // }
   }
 
   &__checkbox-wrapper {
@@ -321,4 +321,11 @@ html {
     cursor: pointer;
   }
 
+}
+
+.footer {
+  color: rgb(102, 102, 102);
+  font-size: .8em;
+  font-family: $ff;
+  margin-top: 1.5rem;
 }
