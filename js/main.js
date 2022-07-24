@@ -214,8 +214,9 @@ function getId(url) {
     throw new Error('Invalid URL');
   }
 
-  const id = url.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
-  return id;
+  // const id = url.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
+  const id = url.match(/(?:[?&]list=)(.[^&]+(?=&|\b))/);
+  return id[1];
 }
 
 function downloadFile(element, file, name) {
