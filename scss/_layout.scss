@@ -127,7 +127,8 @@ html {
     }
     
     &:focus {
-      outline: 3px solid $cl-secondary;
+      box-shadow: 0 0 0 3px $cl-secondary;
+      outline: none;
     }
   }
 
