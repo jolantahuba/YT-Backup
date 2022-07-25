@@ -35,3 +35,5 @@ See [How to change playlist privacy setting?](https://support.google.com/youtube
 ## Inspiration
 Personal needs.  
 Created to never again wonder what's behind "Unavailable videos are hidden" in my YouTube playlist. :relaxed:
+
+*This project is not endorsed or certified by YouTube / Google LLC.*
