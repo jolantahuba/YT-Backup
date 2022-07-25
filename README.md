@@ -8,8 +8,8 @@ Simple application that allows to export information about the videos in YouTube
 Created with the use of YouTube Data API v3.
 
 ## Features
-- Export playlist data to the .csv file
-- Compare created .csv file with current playlist
+- Export playlist data to CSV file
+- Compare created CSV file with current playlist
 - Check what videos have been added or removed (also changed to private)
 - Download changes between your file and current playlist
 - Update your backup file with current data
@@ -34,4 +34,4 @@ See [How to change playlist privacy setting?](https://support.google.com/youtube
 
 ## Inspiration
 Personal needs.  
-Created to never have to wondering what "Unavailable videos are hidden" in my YouTube playlist again. :relaxed:
+Created to never again wonder what's behind "Unavailable videos are hidden" in my YouTube playlist. :relaxed:
