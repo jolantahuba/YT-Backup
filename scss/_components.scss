@@ -78,9 +78,39 @@
 }
 
 .checkbox {
-  width: 1.2em;
-  height: 1.2em;
+  display: flex;
+  justify-content: center;
+
+  position: relative;
+  appearance: none;
+  width: 1.3em;
+  height: 1.3em;
+  border: 1px solid $cl-text;
+  border-radius: 4px;
+  cursor: pointer;
   margin-right: .4em;
+
+  &::before {
+    position: absolute;
+    display: block;
+    content: '';
+    width: .25em;
+    height: .6em;
+    border-style: solid;
+    border-color: #fff;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity .1s
+  }
+
+  &:checked {
+    background-color: $cl-secondary;
+    border-color: $cl-secondary;
+    &::before {
+      opacity: 1;
+    }
+  }
 }
 
 .btn {

@@ -147,6 +147,9 @@ html {
     display: flex;
     margin-top: 1.4rem;
     margin-left: 0.1rem;
+    & label {
+      cursor: pointer;
+    }
   }
 
   &__btn {
