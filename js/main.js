@@ -15,7 +15,7 @@ const urlInput = document.getElementById('input-url');
 const overlay = document.querySelector('.overlay');
 const loader = document.querySelector('.loader');
 
-const apiKey = 'AIzaSyDlaaI4Y7-fklD-lscHes8jiC8tc7YnGOU';
+const API_KEY = 'AIzaSyDlaaI4Y7-fklD-lscHes8jiC8tc7YnGOU';
 
 createBtn.addEventListener('click', () => {
   clearError();
@@ -131,8 +131,8 @@ async function getPlaylist(id) {
     info: null,
     items: [],
   };
-  const itemsApi = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=50&playlistId=${id}&key=${apiKey}`;
-  const playlistApi = `https://youtube.googleapis.com/youtube/v3/playlists?part=snippet%2CcontentDetails&id=${id}&key=${apiKey}`;
+  const itemsApi = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=50&playlistId=${id}&key=${API_KEY}`;
+  const playlistApi = `https://youtube.googleapis.com/youtube/v3/playlists?part=snippet%2CcontentDetails&id=${id}&key=${API_KEY}`;
 
   const headers = ['ID', 'Title', 'Channel', 'PublishedAt']
   if(addDesc) headers.push('Description');
@@ -201,7 +201,6 @@ async function getPlaylist(id) {
       'Playlist title': info.items[0].snippet.title,
       'Playlist author': info.items[0].snippet.channelTitle,
       'Videos': playlist.items.length - 1 // videos count without private
-      // 'Videos': info.items[0].contentDetails.itemCount,
     }
   }
 }
@@ -214,7 +213,6 @@ function getId(url) {
     throw new Error('Invalid URL');
   }
 
-  // const id = url.match(/(?<=[?&]list=).[^&]+(?=&|\b)/);
   const id = url.match(/(?:[?&]list=)(.[^&]+(?=&|\b))/);
   return id[1];
 }
@@ -320,10 +318,10 @@ function showSection(sectionId) {
 }
 
 function showPlaylistInfo(info, fileSize) {
-  const title = document.querySelector('[data-label=title');
-  const author = document.querySelector('[data-label=author');
-  const videos = document.querySelector('[data-label=videos');
-  const size = document.querySelector('[data-label=size');
+  const title = document.querySelector('[data-label=title]');
+  const author = document.querySelector('[data-label=author]');
+  const videos = document.querySelector('[data-label=videos]');
+  const size = document.querySelector('[data-label=size]');
   
   title.textContent = info['Playlist title'];
   author.textContent = info['Playlist author'];
