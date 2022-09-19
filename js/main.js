@@ -22,7 +22,7 @@ async function exportBtnHandler(e) {
   e.preventDefault();
   view.addScreenLock();
   await exportController();
-  view.showSection('export');
+  view.removeScreenLock();
 }
 
 async function exportController() {
@@ -38,7 +38,7 @@ async function exportController() {
     );
 
     view.showPlaylistInfo(backupPlaylist.info, backupFile.size);
-    view.removeScreenLock();
+    view.showSection('export');
 
   } catch(err) {
     let message, details;
