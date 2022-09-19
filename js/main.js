@@ -1,132 +1,173 @@
 'use strict'
 
-const createBtn = document.getElementById('create-btn');
-const findBtn = document.getElementById('find-btn');
-const exportBtn = document.getElementById('export-btn');
-const downloadBtn = document.getElementById('download-btn');
-const checkBtn = document.getElementById('check-btn');
-const updateBtn = document.getElementById('update-btn');
-const downloadChangesBtn = document.getElementById('download-changes-btn');
-
-const menuToggler = document.querySelector('.menu__toggler');
-const fileInput = document.getElementById('input-file');
-const fileLabel = document.querySelector('label[for=input-file]');
-const urlInput = document.getElementById('input-url');
-const overlay = document.querySelector('.overlay');
-const loader = document.querySelector('.loader');
-
 const API_KEY = 'AIzaSyDlaaI4Y7-fklD-lscHes8jiC8tc7YnGOU';
 
-createBtn.addEventListener('click', () => {
-  clearError();
-  urlInput.value = '';
+const elements = {
+  createBtn: document.getElementById('create-btn'),
+  findBtn: document.getElementById('find-btn'),
+  exportBtn: document.getElementById('export-btn'),
+  downloadBtn: document.getElementById('download-btn'),
+  checkBtn: document.getElementById('check-btn'),
+  updateBtn: document.getElementById('update-btn'),
+  downloadChangesBtn: document.getElementById('download-changes-btn'),
 
-  findBtn.classList.remove('active');
-  createBtn.classList.add('active');
-  menuToggler.classList.remove('switched');
-  showSection('create');
-});
+  menuToggler: document.querySelector('.menu__toggler'),
+  fileInput: document.getElementById('input-file'),
+  fileLabel: document.querySelector('label[for=input-file]'),
+  urlInput: document.getElementById('input-url'),
+  descriptionCheckbox: document.getElementById('add-description'),
 
-findBtn.addEventListener('click', () => {
-  clearError();
-  createBtn.classList.remove('active');
-  findBtn.classList.add('active');
-  menuToggler.classList.add('switched');
+  sections: [...document.querySelectorAll('.section')],
+  overlay: document.querySelector('.overlay'),
+  loader: document.querySelector('.loader'),
+}
 
-  showSection('find');
-});
-
-exportBtn.addEventListener('click', async (e) => {
-  e.preventDefault();
+function init() {
+  elements.createBtn.addEventListener('click', createBtnHandler);
+  elements.findBtn.addEventListener('click', findBtnHandler);
+  elements.fileInput.addEventListener('change', addFileNameDisplay);
   
-  try {
-    const playlistId = getId(urlInput.value);
-    const playlist = await fetchPlaylist(playlistId);
-    const backupFile = playlistToCSV(playlist.info, playlist.items);
+  elements.exportBtn.addEventListener('click', exportBtnHandler);
+  elements.checkBtn.addEventListener('click', checkBtnHandler);
+}
 
-    downloadBtn.addEventListener(
+// Controllers
+
+function createBtnHandler() {
+  elements.urlInput.value = '';
+  elements.findBtn.classList.remove('active');
+  elements.createBtn.classList.add('active');
+  elements.menuToggler.classList.remove('switched');
+  showSection('create');
+}
+
+function findBtnHandler() {
+  elements.createBtn.classList.remove('active');
+  elements.findBtn.classList.add('active');
+  elements.menuToggler.classList.add('switched');
+  showSection('find');
+}
+
+async function exportBtnHandler(e) {
+  e.preventDefault();
+  addScreenLock();
+  await exportController();
+  removeScreenLock();
+}
+
+async function exportController() {
+  try {
+    const playlistId = getId(elements.urlInput.value);
+    const hasDescription = elements.descriptionCheckbox.checked;
+    const backupPlaylist = await fetchPlaylist(playlistId, hasDescription);
+    const backupFile = playlistToCSV(backupPlaylist);
+
+    elements.downloadBtn.addEventListener(
       'click', 
-      downloadFile(downloadBtn, backupFile, playlist.info['Playlist title'])
+      downloadFile(elements.downloadBtn, backupFile, backupPlaylist.info['Playlist title'])
     );
 
-    showPlaylistInfo(playlist.info, backupFile.size);
+    showPlaylistInfo(backupPlaylist.info, backupFile.size);
     showSection('export');
 
   } catch(err) {
-    if(err.message == 'Invalid URL') {
-      createError(urlInput, err.message);
-    } else if(err == 404) {
-      createError(urlInput, 'Playlist not found', 'Check the URL or playlist privacy settings - should be set to public or unlisted');
+    let message, details;
+    if(err == 'urlErr') {
+      message = 'Invalid URL';
+    } else if(err == 'notFoundErr') {
+      message = 'Playlist not found';
+      details = 'Check the URL or playlist privacy settings - should be set to public or unlisted';
     } else {
-      createError(urlInput, 'Data retrieving problem', 'Please try again later');
+      message = 'Data retrieving problem';
+      details = 'Please try again later';
     }
+    createError(elements.urlInput, message, details);
   }
-});
+}
 
-checkBtn.addEventListener('click', (e) => {
+function checkBtnHandler(e) {
   e.preventDefault();
   
-  if(!fileInput.files[0]) {
-    createError(fileLabel, 'Add your backup file');
+  if(!elements.fileInput.files[0]) {
+    createError(elements.fileLabel, 'Add your backup file');
     return;
   }
 
   const reader = new FileReader();
-  reader.readAsText(fileInput.files[0]);
-  
-  reader.onload = async () => {
-    let backup, playlist, changes = null;
+  reader.readAsText(elements.fileInput.files[0]);
+  reader.addEventListener('load', async () => {
+    addScreenLock();
+    await compareBackupController(reader);
+    removeScreenLock();
+  });
+}
 
-    try{
-      backup = csvToPlaylist(reader.result);
-      const playlistId = getId(backup.info['Playlist URL']);
+async function compareBackupController(reader) {
+  try {
+    const backupPlaylist = csvToPlaylist(reader.result);
+    const playlistId = getId(backupPlaylist.info['Playlist URL']);
+    const hasDescription = backupPlaylist.items[0].includes('Description') ? true : false;
 
-      if(backup.items[0].includes('Description')) {
-        document.getElementById('add-description').checked = true;
-      }
+    const currentPlaylist = await fetchPlaylist(playlistId, hasDescription);
+    const changes = compareItems(backupPlaylist.items, currentPlaylist.items);
 
-      playlist = await fetchPlaylist(playlistId);
-      changes = compareItems(backup.items, playlist.items);
-
-    } catch(err) { 
-      if(err == 404) {
-        createError(fileLabel, 'Playlist not found', 'Check the Playlist URL in your backup file');
-      } else {
-        createError(fileLabel, 'Cannot read the data', 'Your backup file could have corrupted data');
-      }
-      return;
-    }
-
-    updateBtn.addEventListener('click', () => {
-      const playlistFile = playlistToCSV(playlist.info, playlist.items);
-      downloadFile(downloadBtn, playlistFile, playlist.info['Playlist title']);
-      showPlaylistInfo(playlist.info, playlistFile.size);
-      showSection('export');
-    });
-
-    downloadChangesBtn.addEventListener('click', () => {
-      const changesFile = new Blob([
-        `"Added videos: ${changes.added.length}"\r\n`,
-        arrayToCSV(changes.added),
-        '\r\n\r\n',
-        `"Removed videos: ${changes.removed.length}"\r\n`,
-        arrayToCSV(changes.removed)
-      ], {type: 'text/csv;charset=utf-8;'});
-      
-      downloadFile(downloadChangesBtn, changesFile, 'playlist-changes');
-    });
+    addDownloadChangesBtnHandler(changes);
+    addUpdateBtnHandler(currentPlaylist);
 
     showComparedItems(changes);
     showSection('compare');
-  };  
-});
 
-//------------------------------------------
+  } catch(err) {
+    let message, details;
+    if(err == 'notFoundErr') {
+      message = 'Cannot compare playlist';
+      details = 'Playlist from your backup no longer exists or was changed to private';
+    } else {
+      message = 'Cannot read the data';
+      details = 'Your backup file have corrupted data';
+    }
+    createError(elements.fileLabel, message, details);
+  }
+}
 
-async function fetchPlaylist(id) {
+function addUpdateBtnHandler(currentPlaylist) {
+  elements.updateBtn.addEventListener('click', () => {
+    const playlistFile = playlistToCSV(currentPlaylist);
+    downloadFile(elements.downloadBtn, playlistFile, currentPlaylist.info['Playlist title']);
+    showPlaylistInfo(currentPlaylist.info, playlistFile.size);
+    showSection('export');
+  });
+}
 
-  const playlistItems = await fetchItems(id);
-  const playlistInfo = await fetchInfo(id);
+function addDownloadChangesBtnHandler(changes) {
+  elements.downloadChangesBtn.addEventListener('click', () => {
+    const changesFile = createChangesFile(changes);
+    downloadFile(elements.downloadChangesBtn, changesFile, 'playlist-changes');
+  });
+}
+
+// Playlist
+
+function getId(url) {
+  const regex = /(https:\/\/)?(www\.)?(m.)?youtube\.com.*[?&]list=.*/;
+  const result = regex.test(url);
+
+  if(!result) {
+    throw 'urlErr';
+  }
+
+  const id = url.match(/(?:[?&]list=)(.[^&]+(?=&|\b))/);
+  return id[1];
+}
+
+async function fetchPlaylist(id, hasDescription) {
+
+  const fetchedItems = await fetchItems(id);
+  const playlistItems = saveItems(fetchedItems, hasDescription);
+
+  const fetchedInfo = await fetchInfo(id);
+  const playlistInfo = saveInfo(fetchedInfo);
+
   playlistInfo['Videos'] = playlistItems.length - 1; // without private videos
 
   return {
@@ -139,9 +180,15 @@ async function fetchItems(id) {
   const itemsApi = `https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet%2CcontentDetails&maxResults=50&playlistId=${id}&key=${API_KEY}`;
 
   const fetchedItems = [];
-
   const response = await fetch(itemsApi);
-  if(!response.ok) throw response.status;
+  
+  if(!response.ok) {
+    if(response.status == 404) {
+      throw 'notFoundErr';
+    } else {
+      throw 'fetchErr';
+    }
+  }
   
   let result = await response.json();
   fetchedItems.push(...result.items);
@@ -152,29 +199,26 @@ async function fetchItems(id) {
     fetchedItems.push(...result.items);
   }
 
-  const playlistItems = saveItems(fetchedItems);
-  return playlistItems;
+  return fetchedItems;
 }
 
 async function fetchInfo(id) {
   const playlistApi = `https://youtube.googleapis.com/youtube/v3/playlists?part=snippet%2CcontentDetails&id=${id}&key=${API_KEY}`;
 
   const response = await fetch(playlistApi);
-  if(!response.ok) throw response.status;
+  if(!response.ok) throw 'fetchErr';
   const fetchedInfo = await response.json();
 
-  const playlistInfo = saveInfo(fetchedInfo);
-  return playlistInfo;
+  return fetchedInfo;
 }
 
-function saveItems(items) {
-  const addDesc = document.getElementById('add-description').checked;
+function saveItems(items, hasDescription) {
   const result = [];
 
   const headers = [
     'ID', 'Title', 'Channel', 'PublishedAt'
   ];
-  if(addDesc) headers.push('Description');
+  if(hasDescription) headers.push('Description');
   result.push(headers);
 
   for(let item of items){
@@ -188,7 +232,7 @@ function saveItems(items) {
       item.snippet.videoOwnerChannelTitle,
       item.contentDetails.videoPublishedAt.slice(0,10),
     ];
-    if(addDesc) line.push(item.snippet.description);
+    if(hasDescription) line.push(item.snippet.description);
 
     result.push(line);
   }
@@ -205,25 +249,26 @@ function saveInfo(info) {
   return result;
 }
 
-//------------------------------------------
+function compareItems(backupItems, currentItems) {
+  const addedItems = [];
+  const removedItems = [];
 
-function getId(url) {
-  const regex = /(https:\/\/)?(www\.)?(m.)?youtube\.com.*[?&]list=.*/;
-  const result = regex.test(url);
-
-  if(!result) {
-    throw new Error('Invalid URL');
+  for(let i = 0; i < currentItems.length; i++) {
+    if(!backupItems.some(item => item.includes(currentItems[i][0]))) {
+      addedItems.push(currentItems[i]);
+    }
   }
 
-  const id = url.match(/(?:[?&]list=)(.[^&]+(?=&|\b))/);
-  return id[1];
-}
-
-function downloadFile(element, file, name) {
-  const date = new Date().toISOString().slice(0, 10);
-
-  element.setAttribute("href", URL.createObjectURL(file));
-  element.setAttribute('download', `${name.split(' ').join('-')}-${date}`);
+  for(let i = 0; i < backupItems.length; i++) {
+    if(!currentItems.some(item => item.includes(backupItems[i][0]))) {
+      removedItems.push(backupItems[i]);
+    }
+  }
+  
+  return {
+    added: addedItems,
+    removed: removedItems,
+  }
 }
 
 function arrayToCSV(arr) {
@@ -237,19 +282,17 @@ function arrayToCSV(arr) {
   return csv;
 }
 
-function playlistToCSV(info, items) {
-
+function playlistToCSV(playlist) {
   const blob = new Blob([
-    arrayToCSV(Object.entries(info)),
+    arrayToCSV(Object.entries(playlist.info)),
     '\r\n\r\n',
-    arrayToCSV(items)
+    arrayToCSV(playlist.items)
   ], {type: 'text/csv;charset=utf-8;'});
 
   return blob;
 }
 
 function csvToPlaylist(csv) {
-
   let arr = csv.split('\r\n');
 
   for(let i = 0; i < arr.length; i++) {
@@ -265,38 +308,37 @@ function csvToPlaylist(csv) {
   }
 }
 
-function compareItems(backupItems, playlistItems) {
-  const addedItems = [];
-  const removedItems = [];
-
-  for(let i = 0; i < playlistItems.length; i++) {
-    if(!backupItems.some(item => item.includes(playlistItems[i][0]))) {
-      addedItems.push(playlistItems[i]);
-    }
-  }
-
-  for(let i = 0; i < backupItems.length; i++) {
-    if(!playlistItems.some(item => item.includes(backupItems[i][0]))) {
-      removedItems.push(backupItems[i]);
-    }
-  }
-  
-  return {
-    added: addedItems,
-    removed: removedItems,
-  }
+function createChangesFile(changes) {
+  const changesFile = new Blob([
+    `"Added videos: ${changes.added.length}"\r\n`,
+    arrayToCSV(changes.added),
+    '\r\n\r\n',
+    `"Removed videos: ${changes.removed.length}"\r\n`,
+    arrayToCSV(changes.removed)
+  ], {type: 'text/csv;charset=utf-8;'});
+  return changesFile;
 }
 
-function createError(element, title, message) {
+function downloadFile(element, file, name) {
+  const date = new Date().toISOString().slice(0, 10);
+
+  element.setAttribute("href", URL.createObjectURL(file));
+  element.setAttribute('download', `${name.split(' ').join('-')}-${date}`);
+}
+
+// View
+
+function createError(element, message, details) {
   clearError();
+  const errSvg = 'icons/error.svg';
 
   let error = `
   <div class="error">
     <div class="error__title">
-      <img src="icons/error.svg" alt="">
-      <p>${title}</p>
+      <img src=${errSvg} alt="">
+      <p>${message}</p>
     </div>
-    ${message ? `<p class="error__desc">${message}</p>` : ``}
+    ${details ? `<p class="error__desc">${details}</p>` : ``}
   </div>`;
 
   element.insertAdjacentHTML('afterend', error);
@@ -308,13 +350,13 @@ function clearError() {
 }
 
 function showSection(sectionId) {
-  const sections = [...document.querySelectorAll('.section')];
+  clearError();
 
-  sections
+  elements.sections
     .find(section => section.classList.contains('active'))
     .classList.remove('active')
 
-  sections
+  elements.sections
     .find(section => section.id == sectionId)
     .classList.add('active');
 }
@@ -355,14 +397,26 @@ function showComparedItems(compared) {
   }
 }
 
-fileInput.addEventListener('change', (e) => {
+function addScreenLock() {
+  elements.overlay.classList.add('active');
+  elements.loader.classList.add('active');
+}
+
+function removeScreenLock() {
+  elements.overlay.classList.remove('active');
+  elements.loader.classList.remove('active');
+}
+
+function addFileNameDisplay(e) {
   if(!e.target.value) {
-    fileLabel.innerHTML = `
+    elements.fileLabel.innerHTML = `
     <img src="icons/file.svg" alt="">
     Choose your backup file`
     return;
   }
   const path = e.target.value.split('\\');
   const fileName = path[path.length-1];
-  fileLabel.textContent = fileName;
-});
+  elements.fileLabel.textContent = fileName;
+}
+
+init();
