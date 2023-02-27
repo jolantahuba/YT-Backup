@@ -124,9 +124,8 @@ function saveItems(items, hasDescription) {
   result.push(headers);
 
   for(let item of items){
-    // Skipping private videos
-    if(item.snippet.title === 'Private video') continue;
-    // if(!item.contentDetails.videoPublishedAt) continue;
+    // Skipping private videos, they dont have publishedAt date
+    if(!item.contentDetails.videoPublishedAt) continue;
     
     const line = [
       item.snippet.resourceId.videoId,
