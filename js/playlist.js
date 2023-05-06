@@ -9,7 +9,7 @@ export function getId(url) {
     throw 'urlErr';
   }
 
-  const id = url.match(/(?:[?&]list=)(.[^&]+(?=&|\b))/);
+  const id = url.match(/(?:[?&]list=)([^#\&\?]*).*/);
   return id[1];
 }
 
