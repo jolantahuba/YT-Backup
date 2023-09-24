@@ -118,7 +118,7 @@ function saveItems(items, hasDescription) {
   const result = [];
 
   const headers = [
-    'ID', 'Title', 'Channel', 'AddedAt', 'PublishedAt'
+    'ID', 'Title', 'Channel', 'AddedAt', 'PublishedAt', 'ThumbnailURL'
   ];
   if(hasDescription) headers.push('Description');
   result.push(headers);
@@ -126,13 +126,14 @@ function saveItems(items, hasDescription) {
   for(let item of items){
     // Skipping private videos, they dont have publishedAt date
     if(!item.contentDetails.videoPublishedAt) continue;
-    
+
     const line = [
       item.snippet.resourceId.videoId,
       item.snippet.title,
       item.snippet.videoOwnerChannelTitle,
       item.snippet.publishedAt.slice(0,10),
       item.contentDetails.videoPublishedAt.slice(0,10),
+      item.snippet.thumbnails.high?.url,
     ];
     if(hasDescription) line.push(item.snippet.description);
 
