@@ -11,7 +11,6 @@ Created with the use of [YouTube Data API v3](https://developers.google.com/yout
 - Compare created CSV file with current playlist
   - Check what videos have been added or removed (also changed to private)
   - Download changes between your file and current playlist
-- Update your backup file with current data
 
 ### Private playlists
 
