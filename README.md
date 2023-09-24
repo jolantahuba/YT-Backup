@@ -1,7 +1,7 @@
 # YouTube Playlist Backup
 
 Available here:
-https://jolantahuba.github.io/YT-Backup/
+[YouTube Playlist Backup](https://jolantahuba.github.io/YT-Backup/)
 
 ## About
 Simple application that allows to export information about the videos in YouTube playlist.  
@@ -10,21 +10,29 @@ Created with the use of [YouTube Data API v3](https://developers.google.com/yout
 ## Features
 - Export playlist data to CSV file
 - Compare created CSV file with current playlist
-- Check what videos have been added or removed (also changed to private)
-- Download changes between your file and current playlist
+  - Check what videos have been added or removed (also changed to private)
+  - Download changes between your file and current playlist
 - Update your backup file with current data
-
-You can export following information about the video:
-- ID, Title, Channel, Published date
-- Description (optional)
 
 ### Private playlists
 
 Playlist has to be **public** or **unlisted** in order to get the data.  
-See [How to change playlist privacy setting?](https://support.google.com/youtube/answer/3127309?hl=en)
+- [How to change playlist privacy setting?](https://support.google.com/youtube/answer/3127309?hl=en)
+
+## Exported Data
+You can export following information about the video:
+| Data  | Description |
+| ------------- | ------------- |
+| Video ID  | The unique ID of YouTube video  |
+| Title  | The video title  |
+| Channel  |  The channel that uploaded the video |
+| Added At  | The date that video was added to the playlist  |
+| Published At  | The date that video was published to YouTube  |
+| Thumbnail URL  | The video image URL  |
+| Description  | Optional; The video description  |
 
 ## Setup (self-hosting)
-To run this project locally you need to create your own **Google API key**. See: [Creating API keys](https://cloud.google.com/docs/authentication/api-keys#creating_an_api_key).  
+To run this project locally you need to create your own [**Google API key**](https://cloud.google.com/docs/authentication/api-keys#creating_an_api_key).  
 Then, go to [js/config.js](https://github.com/jolantahuba/YT-Backup/blob/192c1de2aecd48a1f699adee499f9afa664890aa/js/config.js#L1) file and change `API_KEY` value to your generated key:  
 `const API_KEY = 'your_api_key';`
 
