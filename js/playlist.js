@@ -118,7 +118,7 @@ function saveItems(items, hasDescription) {
   const result = [];
 
   const headers = [
-    'ID', 'Title', 'Channel', 'AddedAt', 'PublishedAt', 'ThumbnailURL'
+    'Video ID', 'Title', 'Channel', 'Added At', 'Published At', 'Thumbnail URL'
   ];
   if(hasDescription) headers.push('Description');
   result.push(headers);
