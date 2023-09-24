@@ -118,7 +118,7 @@ function saveItems(items, hasDescription) {
   const result = [];
 
   const headers = [
-    'ID', 'Title', 'Channel', 'PublishedAt'
+    'ID', 'Title', 'Channel', 'AddedAt', 'PublishedAt'
   ];
   if(hasDescription) headers.push('Description');
   result.push(headers);
@@ -131,6 +131,7 @@ function saveItems(items, hasDescription) {
       item.snippet.resourceId.videoId,
       item.snippet.title,
       item.snippet.videoOwnerChannelTitle,
+      item.snippet.publishedAt.slice(0,10),
       item.contentDetails.videoPublishedAt.slice(0,10),
     ];
     if(hasDescription) line.push(item.snippet.description);
