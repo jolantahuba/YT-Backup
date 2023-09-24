@@ -1,10 +1,9 @@
 # YouTube Playlist Backup
 
 Available here:
-[YouTube Playlist Backup](https://jolantahuba.github.io/YT-Backup/)
+[**YouTube Playlist Backup**](https://jolantahuba.github.io/YT-Backup/)
 
-## About
-Simple application that allows to export information about the videos in YouTube playlist.  
+Simple application that allows you to export information about the YouTube playlist videos.  
 Created with the use of [YouTube Data API v3](https://developers.google.com/youtube/v3).
 
 ## Features
