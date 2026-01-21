@@ -1,8 +1,11 @@
 export function downloadFile(element, file, name) {
   const date = new Date().toISOString().slice(0, 10);
 
+  // Clean filename ending to prevent file extension issue
+  const cleanName = name.replace(/[./\\:\s]+$/, "").trim();
+
   element.setAttribute("href", URL.createObjectURL(file));
-  element.setAttribute('download', `${name.split(' ').join('-')}-${date}`);
+  element.setAttribute('download', `${cleanName} (${date})`);
 }
 
 export function arrayToCSV(arr) {
