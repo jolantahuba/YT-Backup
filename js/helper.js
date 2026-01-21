@@ -18,6 +18,7 @@ export function arrayToCSV(arr) {
 
 export function createChangesFile(changes) {
   const changesFile = new Blob([
+    '\uFEFF', // Add BOM here to fix Excel encoding issue
     `"Added videos: ${changes.added.length}"\r\n`,
     arrayToCSV(changes.added),
     '\r\n\r\n',

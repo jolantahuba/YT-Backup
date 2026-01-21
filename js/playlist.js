@@ -53,6 +53,7 @@ export function compareItems(backupItems, currentItems) {
 
 export function playlistToCSV(playlist) {
   const blob = new Blob([
+    '\uFEFF', // Add BOM here to fix Excel encoding issue
     arrayToCSV(Object.entries(playlist.info)),
     '\r\n\r\n',
     arrayToCSV(playlist.items)
