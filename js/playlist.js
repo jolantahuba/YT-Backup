@@ -16,7 +16,15 @@ export function getId(url) {
 export async function fetchPlaylist(id, hasDescription) {
 
   const fetchedItems = await fetchItems(id);
-  const playlistItems = saveItems(fetchedItems, hasDescription);
+
+  // Extract video IDs (skip private videos that lack videoPublishedAt)
+  const videoIds = fetchedItems
+    .filter(item => item.contentDetails.videoPublishedAt)
+    .map(item => item.snippet.resourceId.videoId);
+
+  const durationsMap = await fetchDurations(videoIds);
+
+  const playlistItems = saveItems(fetchedItems, hasDescription, durationsMap);
 
   const fetchedInfo = await fetchInfo(id);
   const playlistInfo = saveInfo(fetchedInfo);
@@ -115,11 +123,53 @@ async function fetchInfo(id) {
   return fetchedInfo;
 }
 
-function saveItems(items, hasDescription) {
+
+// Fetches durations from the '/videos' endpoint. Returns a Map of {videoId -> duration}.
+
+async function fetchDurations(videoIds) {
+  const durationsMap = new Map();
+  const BATCH_SIZE = 50;
+
+  for(let i = 0; i < videoIds.length; i += BATCH_SIZE) {
+    const batch = videoIds.slice(i, i + BATCH_SIZE);
+    const videosApi = `https://youtube.googleapis.com/youtube/v3/videos?part=contentDetails&id=${batch.join(',')}&key=${API_KEY}`;
+
+    const response = await fetch(videosApi);
+    if(!response.ok) throw 'fetchErr';
+
+    const result = await response.json();
+    for(const video of result.items) {
+      durationsMap.set(video.id, parseDuration(video.contentDetails.duration));
+    }
+  }
+
+  return durationsMap;
+}
+
+
+// Converts ISO 8601 duration ("PT1H4M13S") to "H:MM:SS" / "M:SS".
+
+function parseDuration(iso) {
+  const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if(!match) return '';
+
+  const hours   = parseInt(match[1] || '0', 10);
+  const minutes = parseInt(match[2] || '0', 10);
+  const seconds = parseInt(match[3] || '0', 10);
+
+  const mm = String(minutes).padStart(hours > 0 ? 2 : 1, '0');
+  const ss = String(seconds).padStart(2, '0');
+
+  return hours > 0
+    ? `${hours}:${mm}:${ss}`
+    : `${mm}:${ss}`;
+}
+
+function saveItems(items, hasDescription, durationsMap) {
   const result = [];
 
   const headers = [
-    'Video ID', 'Title', 'Channel', 'Added At', 'Published At', 'Thumbnail URL'
+    'Video ID', 'Title', 'Channel', 'Added At', 'Published At', 'Duration', 'Thumbnail URL'
   ];
   if(hasDescription) headers.push('Description');
   result.push(headers);
@@ -128,12 +178,15 @@ function saveItems(items, hasDescription) {
     // Skipping private videos, they dont have publishedAt date
     if(!item.contentDetails.videoPublishedAt) continue;
 
+    const videoId = item.snippet.resourceId.videoId;
+
     const line = [
-      item.snippet.resourceId.videoId,
+      videoId,
       item.snippet.title,
       item.snippet.videoOwnerChannelTitle,
       item.snippet.publishedAt.slice(0,10),
       item.contentDetails.videoPublishedAt.slice(0,10),
+      durationsMap.get(videoId) ?? '',
       item.snippet.thumbnails.high?.url,
     ];
     if(hasDescription) line.push(item.snippet.description);

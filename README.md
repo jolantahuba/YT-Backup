@@ -24,8 +24,9 @@ You can export following information about the video:
 | Video ID  | The unique ID of YouTube video  |
 | Title  | The video title  |
 | Channel  |  The channel that uploaded the video |
-| Added At  | The date that video was added to the playlist  |
+| Added At  | The date the video was added to the playlist  |
 | Published At  | The date that video was published to YouTube  |
+| Duration  | Video duration (length) in `HH:MM:SS` format  |
 | Thumbnail URL  | The video image URL  |
 | Description  | Optional; The video description  |
 
